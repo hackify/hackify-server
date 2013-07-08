@@ -54,7 +54,7 @@ io.sockets.on('connection', function (socket) {
       //set up the socket properties
       socket.join(data.room);
       socket.set('room', data.room);
-      var userId = (data.userId)?data.userId:'hacker' + Math.floor(Math.random() * 9999999999).toString();
+      var userId = (data.userId)?data.userId:'hckr' + Math.floor(Math.random() * 9999).toString();
       socket.set('userId', userId);
 
       //tell the socket about the room state
