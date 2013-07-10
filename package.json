@@ -2,7 +2,7 @@
   "author": "Michael Dausmann",
   "name": "hackify-server",
   "homepage": "http://hackify.org",
-  "version": "0.1.0",
+  "version": "0.1.0-1",
   "engines": {
     "node": ">= 0.8.12"
   },
@@ -11,6 +11,10 @@
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",
+  "domains": [
+    "hackify.org",
+    "www.hackify.org"
+  ],
   "scripts": {
     "start": "server.js"
   }

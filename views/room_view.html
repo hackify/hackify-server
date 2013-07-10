@@ -72,7 +72,7 @@
       var socket = io.connect();
 
       //client --> server (Join a particular room)
-      var room = decodeURIComponent((new RegExp('[?|&]' + 'room' + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+      var room = '<%= roomId %>';
       socket.emit('joinRoom', {room: room});
 
       //server --> client (notification that the active file has changed, data comes later)
