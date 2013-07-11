@@ -7,7 +7,9 @@
     "node": ">= 0.8.12"
   },
   "dependencies": {
-    "socket.io": "0.9.16"
+      "express": "3.3.4",
+      "socket.io": "0.9.16",
+      "ejs" : "0.8.4"
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",
