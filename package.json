@@ -2,14 +2,14 @@
   "author": "Michael Dausmann",
   "name": "hackify-server",
   "homepage": "http://hackify.org",
-  "version": "0.1.0-1",
+  "version": "0.1.0-5",
   "engines": {
     "node": ">= 0.8.12"
   },
   "dependencies": {
-      "express": "3.3.4",
-      "socket.io": "0.9.16",
-      "ejs" : "0.8.4"
+    "express": "3.3.4",
+    "socket.io": "0.9.16",
+    "ejs": "0.8.4"
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",
