@@ -9,5 +9,7 @@ hackify-server
 Clone repo then..
 ```
 $ npm install
+$ npm install -g bower
+$ bower install
 $ node server.js
 ```
