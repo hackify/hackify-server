@@ -1,0 +1,19 @@
+{
+  "name": "hackify-server",
+  "version": "0.1.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery":"latest",
+    "bootstrap-css":"latest",
+    "angular": "latest",
+    "angular-socket-io": "latest",
+    "angular-ui-codemirror": "git://github.com/hackify/ui-codemirror"
+  }
+}
