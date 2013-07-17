@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="myApp">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>hackify &middot; org</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,64 +15,73 @@
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-      <script src="./js/html5shiv.js"></script>
+    <script src="./js/html5shiv.js"></script>
     <![endif]-->
 
     <!-- Fav and touch icons -->
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="./ico/apple-touch-icon-144-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="./ico/apple-touch-icon-114-precomposed.png">
-      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="./ico/apple-touch-icon-72-precomposed.png">
-                    <link rel="apple-touch-icon-precomposed" href="./ico/apple-touch-icon-57-precomposed.png">
-                                   <link rel="shortcut icon" href="./ico/favicon.png">
-  </head>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="./ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="./ico/apple-touch-icon-57-precomposed.png">
+    <link rel="shortcut icon" href="./ico/favicon.png">
+</head>
 
-  <body>
+<body>
 
-    <div class="container" ng-controller="AppCtrl">
+<div class="container" ng-controller="AppCtrl">
 
-      <h2 title="You are likely to be eaten by a grue.">You are in room {{name}}.</h2>
+    <h2 title="You are likely to be eaten by a grue.">You are in room {{name}}.</h2>
 
-      <h3>currentFile:{{currentFile}}</h3>
-      <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>
-      <button ng-click="requestSaveCurrentFile()">save to host</button>
+    <h3>currentFile:{{currentFile}}</h3>
+    <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>
+    <button ng-click="requestSaveCurrentFile()">save to host</button>
 
-      <h3>Files</h3>
-      <ul><li ng-repeat="file in files">{{file}}<button ng-click="requestChangeCurrentFile(file)">load</button></li></ul>
+    <h3>Files</h3>
+    <ul>
+        <li ng-repeat="file in files">{{file}}
+            <button ng-click="requestChangeCurrentFile(file)">load</button>
+        </li>
+    </ul>
 
-      <h3>Chat</h3>
-      <ul>
+    <h3>Chat</h3>
+    <ul>
         <li ng-repeat="message in messages">{{ message | json }}</li>
-      </ul>
-      <input ng-model="newMessage"></input><button ng-click="newChatMessage()">send</button>
+    </ul>
+    <input ng-model="newMessage"></input>
+    <button ng-click="newChatMessage()">send</button>
 
-      <h3>Users</h3>
-      <ul><li ng-repeat="user in users">{{user|json}}</li></ul>
-      <input ng-model="newUserId"></input><button ng-click="changeUserId()">change</button>
+    <h3>Users</h3>
+    <ul>
+        <li ng-repeat="user in users">{{user|json}}</li>
+    </ul>
+    <input ng-model="newUserId"></input>
+    <button ng-click="changeUserId()">change</button>
 
-      <p>TODO - Coolness :)</p>
-    </div> <!-- /container -->
+    <p>TODO - Coolness :)</p>
+</div>
+<!-- /container -->
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="/socket.io/socket.io.js"></script> 
-    <script src="/bower_components/jquery/jquery.min.js"></script>
-    <script src="/bower_components/bootstrap-css/js/bootstrap.min.js"></script>
-    <script src="/bower_components/codemirror/lib/codemirror.js"></script>
-    <script src="/bower_components/angular/angular.min.js"></script>
-    <script src="/bower_components/angular-ui-codemirror/ui-codemirror.js"></script>    
-    <script src="/bower_components/angular-socket-io/socket.js"></script>    
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="/bower_components/jquery/jquery.min.js"></script>
+<script src="/bower_components/bootstrap-css/js/bootstrap.min.js"></script>
+<script src="/bower_components/codemirror/lib/codemirror.js"></script>
+<script src="/bower_components/angular/angular.min.js"></script>
+<script src="/bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+<script src="/bower_components/angular-socket-io/socket.js"></script>
 
-    <script>
-      var roomName = '<%= roomId %>';
-    </script>    
-    <script src="/js/serverState.js"></script>
+<script>
+    var roomName = '<%= roomId %>';
+</script>
+<script src="/js/serverState.js"></script>
 
-    <script src="/js/app.js"></script>
-    <script src="/js/services.js"></script>
-    <script src="/js/controllers.js"></script>
-    <script src="/js/filters.js"></script>
-    <script src="/js/directives.js"></script>
-  
-  </body>
+<script src="/js/app.js"></script>
+<script src="/js/services.js"></script>
+<script src="/js/controllers.js"></script>
+<script src="/js/filters.js"></script>
+<script src="/js/directives.js"></script>
+
+</body>
 </html>
