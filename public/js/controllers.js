@@ -11,6 +11,8 @@ angular.module('myApp.controllers', []).
     $scope.body = "";
     $scope.messages = [];
     $scope.users = [];
+    $scope.readOnly = true;
+    $scope.warning = "";
 
     $scope.newMessage = "";
     $scope.newUserId = "";
@@ -25,6 +27,10 @@ angular.module('myApp.controllers', []).
     //server --> client (notification that the active file has changed, data comes later)
     socket.on('changeCurrentFile', function (file) {
       $scope.currentFile = file;
+    });
+
+    socket.on('roomReadOnly', function (readOnly) {
+      $scope.readOnly = readOnly;
     });
 
     socket.on('fileAdded', function(file){
@@ -42,19 +48,22 @@ angular.module('myApp.controllers', []).
     //server --> client (server sends fresh data for active file)
     socket.on('refreshData', function (body) {
       if(body){
-        // editor.setValue(body);
         $scope.body = body;
       }else{
-        // editor.setValue('')
         $scope.body = '';
       }
     });
 
     //server --> client (recieve an incremental operation from the active editor via the server)
     socket.on('changeData', function (data) {
-      // editor.replaceRange(data.text, data.from, data.to);
-      //TODO
       $scope.newChange = data;
+    });
+
+    socket.on('resetHostData', function(){
+      $scope.currentFile = "no file";
+      $scope.files = [];
+      $scope.body = "";
+      $scope.warning = "";
     });
 
     socket.on('newChatMessage', function (message, userId) {
@@ -64,6 +73,11 @@ angular.module('myApp.controllers', []).
     socket.on('newUser', function(data){
       $scope.users.push(data); 
     });
+
+    socket.on('exitingUser', function(userId){
+      var user = findUser(userId);
+      $scope.users.splice($scope.users.indexOf(user), 1);       
+    });    
 
     socket.on('userIdChanged', function(oldUserId, newUserId){
       var user = findUser(oldUserId);
@@ -108,27 +122,24 @@ angular.module('myApp.controllers', []).
     //***************************
 
     $scope.onEditorChange = function(i, op){
-      console.log('editor change:' + op);
-      socket.emit('changeData', op);
-      socket.emit('refreshData', $scope.body, false);//refresh data on server but don't broadcast
+      if(op.origin!=='setValue'){
+        if($scope.readOnly){
+          $scope.warning = "Your changes will not be shared";
+        }else{
+          console.log('editor change:' + op);
+          socket.emit('changeData', op);
+          socket.emit('refreshData', $scope.body, false);//refresh data on server but don't broadcast
+        }
+      }
     };
 
     $scope.editorOptions = {
         lineWrapping : true,
         lineNumbers: true,
-        // readOnly: 'nocursor',
+        readOnly: false,
         mode: 'js',
         onChange: $scope.onEditorChange
     };
-
-
-
-      // editor.on('change', function (i, op) {
-      //   console.log('editor change:' + op);
-      //   socket.emit('changeData', op);
-      //   socket.emit('refreshData', editor.getValue(), false);//refresh data on server but don't broadcast
-      // });
-
 
   });
 
