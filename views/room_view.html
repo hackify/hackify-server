@@ -61,18 +61,25 @@
 
                 <div class="span6">
                     <h3>Users</h3>
-                    <ul>
-                        <li ng-repeat="user in users">{{user|json}}</li>
+
+                    <form class="form-inline">
+                        <input ng-model="newUserId" placeholder="Change Nickname"></input>
+                        <button class="btn" ng-click="changeUserId()">change</button>
+                    </form>
+
+                    <ul id="userlist">
+                        <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}">{{ user.userId }} ({{ user  | json}})</li>
                     </ul>
-                    <input ng-model="newUserId"></input>
-                    <button class="btn" ng-click="changeUserId()">change</button>
 
                     <h3>Chat</h3>
+                    <form class="form-inline">
+                        <input ng-model="newMessage"></input>
+                        <button class="btn" ng-click="newChatMessage()">send</button>
+                    </form>
+
                     <ul>
-                        <li ng-repeat="message in messages">{{ message | json }}</li>
+                        <li ng-repeat="message in messages | reverse">{{ message | json }}</li>
                     </ul>
-                    <input ng-model="newMessage"></input>
-                    <button class="btn" ng-click="newChatMessage()">send</button>
                 </div>
             </div>
         </div>
@@ -87,7 +94,15 @@
 <script src="/bower_components/jquery/jquery.min.js"></script>
 <script src="/bower_components/bootstrap-css/js/bootstrap.min.js"></script>
 <script src="/bower_components/codemirror/lib/codemirror.js"></script>
+<script src="/bower_components/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+<script src="/bower_components/codemirror/mode/xml/xml.js"></script>
+<script src="/bower_components/codemirror/mode/javascript/javascript.js"></script>
+<script src="/bower_components/codemirror/mode/css/css.js"></script>
+<script src="/bower_components/codemirror/mode/clike/clike.js"></script>
+<script src="/bower_components/codemirror/mode/php/php.js"></script>
 <script src="/bower_components/angular/angular.min.js"></script>
+<!-- <script src="/bower_components/angular-ui.github.com/angular-ui/build/angular-ui.js"></script> -->
 <script src="/bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
 <script src="/bower_components/angular-socket-io/socket.js"></script>
 

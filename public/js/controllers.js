@@ -116,6 +116,7 @@ angular.module('myApp.controllers', []).
     $scope.editorOptions = {
         lineWrapping : true,
         lineNumbers: true,
+        matchBrackets: true,
         // readOnly: 'nocursor',
         mode: 'js',
         onChange: $scope.onEditorChange
