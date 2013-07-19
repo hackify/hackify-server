@@ -33,7 +33,7 @@ angular.module('myApp.controllers', []).
       $scope.readOnly = readOnly;
     });
 
-    socket.on('fileAdded', function(file){
+    socket.on('fileAdded', function(file) {
       $scope.files.push(file);
     });
 

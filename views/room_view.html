@@ -35,30 +35,29 @@
 
             <div class="row-fluid">
                 <div class="span12">
-                    <form>
-                        <fieldset>
-                            <legend>{{currentFile}}</legend>
-                            <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>
 
-                            <div class="btn-group">
-                                <button class="btn btn-primary" ng-click="requestSaveCurrentFile()">save to host
-                                </button>
-                            </div>
-                        </fieldset>
+                    <h3>Files</h3>
+                    <ul id="files" class="clearfix">
+                        <li ng-repeat="file in files">
+                            <a href=""#" class="btn" ng-click="requestChangeCurrentFile(file)">{{ file }}</a>
+                        </li>
+                    </ul>
+
+                    <form>
+                        <ul class="breadcrumb">
+                            <li class="active">{{currentFile}}</li>
+                        </ul>
+
+                        <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" ng-click="requestSaveCurrentFile()">Save</button>
+                        </div>
                     </form>
                 </div>
             </div>
 
             <div class="row-fluid">
-                <div class="span6">
-                    <h3>Files</h3>
-                    <ul>
-                        <li ng-repeat="file in files">{{file}}
-                            <button class="btn" ng-click="requestChangeCurrentFile(file)">load</button>
-                        </li>
-                    </ul>
-                </div>
-
                 <div class="span6">
                     <h3>Users</h3>
 
@@ -71,6 +70,9 @@
                         <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}">{{ user.userId }} ({{ user  | json}})</li>
                     </ul>
 
+                </div>
+
+                <div class="span6">
                     <h3>Chat</h3>
                     <form class="form-inline">
                         <input ng-model="newMessage"></input>

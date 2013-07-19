@@ -12,5 +12,9 @@ body {
     margin: 60px 0;
 }
 
+.CodeMirror {margin-bottom: 20px; border: 1px solid #f5f5f5;}
 
 #userlist li.active {font-weight: bold;}
+
+#files {list-style-type: none;}
+#files li {float: left; padding: 3px;}
