@@ -11,6 +11,8 @@ angular.module('myApp.controllers', []).
     $scope.body = "";
     $scope.messages = [];
     $scope.users = [];
+    $scope.readOnly = true;
+    $scope.warning = "";
 
     $scope.newMessage = "";
     $scope.newUserId = "";
@@ -25,6 +27,10 @@ angular.module('myApp.controllers', []).
     //server --> client (notification that the active file has changed, data comes later)
     socket.on('changeCurrentFile', function (file) {
       $scope.currentFile = file;
+    });
+
+    socket.on('roomReadOnly', function (readOnly) {
+      $scope.readOnly = readOnly;
     });
 
     socket.on('fileAdded', function(file){
@@ -57,6 +63,13 @@ angular.module('myApp.controllers', []).
       $scope.newChange = data;
     });
 
+    socket.on('resetHostData', function(){
+      $scope.currentFile = "no file";
+      $scope.files = [];
+      $scope.body = "";
+      $scope.warning = "";
+    });
+
     socket.on('newChatMessage', function (message, userId) {
       $scope.messages.push({message:message, userId:userId});
     });
@@ -64,6 +77,11 @@ angular.module('myApp.controllers', []).
     socket.on('newUser', function(data){
       $scope.users.push(data); 
     });
+
+    socket.on('exitingUser', function(userId){
+      var user = findUser(userId);
+      $scope.users.splice($scope.users.indexOf(user), 1);       
+    });    
 
     socket.on('userIdChanged', function(oldUserId, newUserId){
       var user = findUser(oldUserId);
@@ -108,16 +126,22 @@ angular.module('myApp.controllers', []).
     //***************************
 
     $scope.onEditorChange = function(i, op){
-      console.log('editor change:' + op);
-      socket.emit('changeData', op);
-      socket.emit('refreshData', $scope.body, false);//refresh data on server but don't broadcast
+      if(op.origin!=='setValue'){
+        if($scope.readOnly){
+          $scope.warning = "Your changes will not be shared";
+        }else{
+          console.log('editor change:' + op);
+          socket.emit('changeData', op);
+          socket.emit('refreshData', $scope.body, false);//refresh data on server but don't broadcast
+        }
+      }
     };
 
     $scope.editorOptions = {
         lineWrapping : true,
         lineNumbers: true,
         matchBrackets: true,
-        // readOnly: 'nocursor',
+        readOnly: false,
         mode: 'js',
         onChange: $scope.onEditorChange
     };

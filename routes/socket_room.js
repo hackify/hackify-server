@@ -9,22 +9,22 @@ module.exports.listen = function(io, socket, rooms){
       socket.set('room', data.name);
       socket.set('userId', 'host');
       socket.join(data.name);
-      if(!rooms[data.name]){
-        //full update of state including ody and request fresh file (pick first file arbitrarily)
-        rooms[data.name] = data;
-        rooms[data.name].files = [];
-        rooms[data.name].currentFile = "no file";
-        rooms[data.name].hostSocket = socket;
-        rooms[data.name].editingUserSocket = null;
-        rooms[data.name].moderatorPass = data.moderatorPass;
 
-        console.log('new room created:' + data.name);
-      }else{
-        //just update the files
-        rooms[data.name].hostSocket = socket;
-        console.log('host reconnected to room' + data.name);
-      }   
+      rooms[data.name] = data;
+      rooms[data.name].files = [];
+      rooms[data.name].currentFile = "no file";
+      rooms[data.name].body = "";
+      rooms[data.name].hostSocket = socket;
+      rooms[data.name].moderatorPass = data.moderatorPass;
 
+      //reset the other participants (if any) 
+      socket.broadcast.to(data.name).emit('newUser', {userId:'host', isYou:false});
+      socket.broadcast.to(data.name).emit('newChatMessage', 'host has re-entered the room', 'hackify');
+      socket.broadcast.to(data.name).emit('resetHostData');
+      rooms[data.name].files.forEach(function(file){
+        socket.broadcast.to(data.name).emit('fileAdded', file)
+      });
+      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);      
     }else{
       console.log('version check failed hostVersion:%s config.minHostVersion:%s', hostVersion, config.minHostVersion);
       socket.emit('error', 'cannot join room, minimum host version is ' + config.minHostVersion + ' your hackify version is ' + hostVersion + '. please update your hackify module (npm install -g hackify)')
@@ -48,11 +48,7 @@ module.exports.listen = function(io, socket, rooms){
       });
       socket.emit('changeCurrentFile', roomState.currentFile);
       socket.emit('refreshData', roomState.body);
-
-      //if this is the first or only user, make him the editing user
-      if(!roomState.editingUserSocket){
-        roomState.editingUserSocket = socket; 
-      }  
+      socket.emit('roomReadOnly', roomState.readOnly);
 
       //tell this socket about all of the users (including itself)
       var clients = io.sockets.clients(data.room);
@@ -61,8 +57,7 @@ module.exports.listen = function(io, socket, rooms){
           if(clientUserId){
             socket.emit('newUser', {
               userId:clientUserId, 
-              isYou:(client===socket)?true:false,
-              isEditing:(client===roomState.editingUserSocket)?true:false
+              isYou:(client===socket)?true:false
             });
           }
         });
@@ -75,11 +70,33 @@ module.exports.listen = function(io, socket, rooms){
     }
   });
 
-  //client --> server (client leaves a particular room)
-  socket.on('leaveRoom', function (data) {
-    socket.leave(data.room);
-    socket.set('room', null);
-    //todo - tell everybody else in room that user is gone.. also wire up same to socket disconnect...?? both??
+  socket.on('disconnect', function(){
+    socket.get('room', function (err, room) {
+      if(!err && room!="" && room !=null){
+        socket.get('userId', function(err, userId){
+          socket.leave(room);
+          socket.set('room', null);
+          io.sockets.in(room).emit('exitingUser',userId);
+          io.sockets.in(room).emit('newChatMessage', userId + ' has left the room', 'hackify');
+
+          //handle host socket disconnection
+          if(socket===rooms[room].hostSocket){
+            rooms[room].readOnly = true;
+            rooms[room].hostSocket = null;
+            socket.broadcast.to(room).emit('roomReadOnly', true);
+            io.sockets.in(room).emit('newChatMessage', 'room is now read only', 'hackify');
+          }
+
+          //check if room is empty
+          if(io.sockets.clients(room).length===0){
+            console.log('deleting room %s', room);
+            delete rooms[room];
+          }
+
+
+        })
+      }
+    });
   });
 
 };

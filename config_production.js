@@ -4,4 +4,4 @@
 console.log('*** using production config ***');
 
 exports.port = 80;
-exports.minHostVersion = "0.1.1"
+exports.minHostVersion = "0.1.2"

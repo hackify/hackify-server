@@ -4,4 +4,4 @@
 console.log('*** using dev config ***');
 
 exports.port = 4000;
-exports.minHostVersion = "0.1.1"
+exports.minHostVersion = "0.1.2"
