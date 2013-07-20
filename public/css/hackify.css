@@ -16,5 +16,5 @@ body {
 
 #userlist li.active {font-weight: bold;}
 
-#files {list-style-type: none;}
+#files {list-style-type: none; overflow: auto; height: 108px;}
 #files li {float: left; padding: 3px;}
