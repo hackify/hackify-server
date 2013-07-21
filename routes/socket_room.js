@@ -38,7 +38,11 @@ module.exports.listen = function(io, socket, rooms){
       //set up the socket properties
       socket.join(data.room);
       socket.set('room', data.room);
-      var userId = (data.userId)?data.userId:'hckr' + Math.floor(Math.random() * 9999).toString();
+
+      var userInfo = (socket.handshake.session.passport.user)?socket.handshake.session.passport.user:{};
+      socket.set('userInfo', userInfo);
+
+      var userId = (userInfo.displayName)?userInfo.displayName:'hckr' + Math.floor(Math.random() * 9999).toString();
       socket.set('userId', userId);
 
       //tell the socket about the room state
@@ -54,17 +58,20 @@ module.exports.listen = function(io, socket, rooms){
       var clients = io.sockets.clients(data.room);
       clients.forEach(function(client){
         client.get('userId', function(err, clientUserId){
-          if(clientUserId){
-            socket.emit('newUser', {
-              userId:clientUserId, 
-              isYou:(client===socket)?true:false
-            });
-          }
+          client.get('userInfo', function(err, clientUserInfo){
+            if(clientUserId){
+              socket.emit('newUser', {
+                userId:clientUserId, 
+                isYou:(client===socket)?true:false,
+                userInfo: clientUserInfo
+              });
+            }
+          });
         });
       });        
 
       //now tell all of the other sockets about the new user
-      socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false});
+      socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo});
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')
     }
