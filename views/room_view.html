@@ -67,7 +67,13 @@
                     </form>
 
                     <ul id="userlist">
-                        <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}">{{ user.userId }} ({{ user  | json}})</li>
+                        <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}" ng-hide="user.userId == 'host'">
+                            <div class="ng-cloak">
+                                <img ng-hide="user.userInfo" src="/img/unknown.png" alt="{{ user.userId }}" />
+                                <img ng-show="user.userInfo" src="{{ user.userInfo.avatar_url }}" alt="{{ user.userId }}" />
+                            </div>
+                            {{ user.userId }}
+                        </li>
                     </ul>
 
                 </div>
