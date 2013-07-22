@@ -16,6 +16,11 @@ module.exports.listen = function(io, socket, rooms){
       rooms[data.name].body = "";
       rooms[data.name].hostSocket = socket;
       rooms[data.name].moderatorPass = data.moderatorPass;
+      rooms[data.name].authMap = {
+        moderator:{'refreshData':true, 'changeData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true}
+        editor:{'refreshData':true, 'changeData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true}
+        spectator:{'refreshData':false, 'changeData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false}
+      }
 
       //reset the other participants (if any) 
       socket.broadcast.to(data.name).emit('newUser', {userId:'host', isYou:false});
