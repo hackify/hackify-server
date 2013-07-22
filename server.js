@@ -3,6 +3,7 @@ var express = require('express'),
   sessionStore = new express.session.MemoryStore(),
   passport = require('passport'),
   gitHubStrategy = require('passport-github').Strategy,
+  winston = require('winston'),
   http = require('http'),
   path = require('path'),
   config = require('./config_' + (process.env.NODE_ENV || 'dev')),
@@ -54,7 +55,7 @@ app.configure(function () {
   app.set('views', __dirname + '/views');
   app.engine('html', require('ejs').renderFile);  //I don't love ejs but I hate jade
   app.use(express.static(path.join(__dirname, 'public')));
-  app.use(express.logger());
+  app.use(express.logger('short'));
   app.use(express.cookieParser(config.siteSecret));
   app.use(express.bodyParser());
   app.use(express.session({key: 'connect.sid', store: sessionStore}));
@@ -83,6 +84,7 @@ io.set('authorization', ioSession(express.cookieParser(config.siteSecret), sessi
 }));
 
 //*** Room (Socket) routes ***
+io.set('log level', 2);
 io.sockets.on('connection', function(socket){
   require('./routes/socket_chat').listen(io, socket, rooms);
   require('./routes/socket_code').listen(io, socket, rooms);
@@ -91,5 +93,5 @@ io.sockets.on('connection', function(socket){
 });
 
 server.listen(app.get('port'), function () {
-  console.log("hackify server listening on Port: " + app.get('port'));
+  winston.info("hackify server listening", { port: app.get('port') });
 });

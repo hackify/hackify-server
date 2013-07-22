@@ -4,7 +4,6 @@ module.exports.listen = function(io, socket, rooms){
     socket.get('room', function (err, room) {
       if(!err && room!="" && room !=null){
         socket.get('userId', function(err, userId){
-          console.log('newChatMessage:' + data);
           io.sockets.in(room).emit('newChatMessage', data, userId);          
       })
       }
@@ -12,7 +11,6 @@ module.exports.listen = function(io, socket, rooms){
   });
 
   socket.on('changeUserId', function (newUserId) {
-    console.log('newUserId:' + newUserId);
     socket.get('room', function (err, room) {
       if(!err && room!="" && room !=null){
         socket.get('userId', function(err, userId){

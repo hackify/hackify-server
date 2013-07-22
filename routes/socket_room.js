@@ -1,4 +1,5 @@
 var vcompare = require('../lib/vcompare'),
+    winston = require('winston'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev'));
 
 module.exports.listen = function(io, socket, rooms){
@@ -29,16 +30,16 @@ module.exports.listen = function(io, socket, rooms){
       rooms[data.name].files.forEach(function(file){
         socket.broadcast.to(data.name).emit('fileAdded', file)
       });
-      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);      
+      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);  
+      winston.info('room created', { name:data.name, hostVersion: data.hostVersion, hostAddr: socket.handshake.address });
     }else{
-      console.log('version check failed hostVersion:%s config.minHostVersion:%s', hostVersion, config.minHostVersion);
+      winston.info('refusing room create (version check failed)', {hostVersion:hostVersion, minHostVersion: config.minHostVersion});
       socket.emit('error', 'cannot join room, minimum host version is ' + config.minHostVersion + ' your hackify version is ' + hostVersion + '. please update your hackify module (npm install -g hackify)')
     }
   });
 
   //client --> server --> client (client joins a particular room and gets room data refreshed)
   socket.on('joinRoom', function (data) {
-    console.log('recieved Join request room' + data.room);
     if(rooms[data.room]){
       //set up the socket properties
       socket.join(data.room);
@@ -77,6 +78,7 @@ module.exports.listen = function(io, socket, rooms){
 
       //now tell all of the other sockets about the new user
       socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo});
+      winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')
     }
@@ -99,13 +101,13 @@ module.exports.listen = function(io, socket, rooms){
             io.sockets.in(room).emit('newChatMessage', 'room is now read only', 'hackify');
           }
 
+          winston.info('user left room', {userId: userId, room:room, clientAddr: socket.handshake.address});
+
           //check if room is empty
           if(io.sockets.clients(room).length===0){
-            console.log('deleting room %s', room);
             delete rooms[room];
+            winston.info('room closed', {room:room});
           }
-
-
         })
       }
     });

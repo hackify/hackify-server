@@ -12,7 +12,8 @@
     "ejs": "0.8.4",
     "passport": "0.1.17",
     "passport-github": "0.1.5",
-    "socket.io-session": "0.0.5"
+    "socket.io-session": "0.0.5",
+    "winston": "0.7.2"
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",
