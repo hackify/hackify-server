@@ -4,6 +4,7 @@
 console.log('*** using dev config ***');
 
 exports.port = 4000;
+exports.callbackURI = 'http://localhost:4000/auth/github/callback'
 exports.minHostVersion = "0.1.2";
 exports.siteSecret = 'joaisduyfoaisduyfo';
 
