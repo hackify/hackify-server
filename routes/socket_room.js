@@ -9,6 +9,7 @@ module.exports.listen = function(io, socket, rooms){
     if(vcompare.compare(hostVersion, config.minHostVersion) >= 0){
       socket.set('room', data.name);
       socket.set('userId', 'host');
+      socket.set('role', 'host');
       socket.join(data.name);
 
       rooms[data.name] = data;
@@ -18,9 +19,10 @@ module.exports.listen = function(io, socket, rooms){
       rooms[data.name].hostSocket = socket;
       rooms[data.name].moderatorPass = data.moderatorPass;
       rooms[data.name].authMap = {
-        moderator:{'refreshData':true, 'changeData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true},
-        editor:{'refreshData':true, 'changeData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true},
-        spectator:{'refreshData':false, 'changeData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false}
+        moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true},
+        editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true},
+        // default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false}
+        default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true}
       }
 
       //reset the other participants (if any) 
@@ -51,6 +53,8 @@ module.exports.listen = function(io, socket, rooms){
       var userId = (userInfo.displayName)?userInfo.displayName:'hckr' + Math.floor(Math.random() * 9999).toString();
       socket.set('userId', userId);
 
+      socket.set('role', 'default');
+
       //tell the socket about the room state
       var roomState = rooms[data.room];
       roomState.files.forEach(function(file){
@@ -69,7 +73,8 @@ module.exports.listen = function(io, socket, rooms){
               socket.emit('newUser', {
                 userId:clientUserId, 
                 isYou:(client===socket)?true:false,
-                userInfo: clientUserInfo
+                userInfo: clientUserInfo,
+                role: 'default' //TODO - pull from client
               });
             }
           });
@@ -77,7 +82,7 @@ module.exports.listen = function(io, socket, rooms){
       });        
 
       //now tell all of the other sockets about the new user
-      socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo});
+      socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo, role:'default'});
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')

@@ -46,6 +46,7 @@
                     <form>
                         <ul class="breadcrumb">
                             <li class="active">{{currentFile}}</li>
+                            <li class="text-warning" ng-hode="warning==''">{{warning}}</li>
                         </ul>
 
                         <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>

@@ -13,7 +13,8 @@
     "passport": "0.1.17",
     "passport-github": "0.1.5",
     "socket.io-session": "0.0.5",
-    "winston": "0.7.2"
+    "winston": "0.7.2",
+    "async": "0.2.9"
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",
