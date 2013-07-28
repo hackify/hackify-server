@@ -11,5 +11,6 @@ var myApp = angular.module('myApp', [
 
   // 3rd party dependencies
   'btford.socket-io',
-  'ui.codemirror'
+  'ui.codemirror',
+  'ui.bootstrap'
 ]);

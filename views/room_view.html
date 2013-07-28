@@ -11,6 +11,7 @@
     <link href="/bower_components/codemirror/lib/codemirror.css" rel="stylesheet">
     <link href="/bower_components/bootstrap-css/css/bootstrap.css" rel="stylesheet">
     <link href="/bower_components/bootstrap-css/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/lib/necolas-css3-social-signin-buttons/auth-buttons.css" rel="stylesheet">
     <link href="/css/hackify.css" rel="stylesheet">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -62,21 +63,15 @@
                 <div class="span6">
                     <h3>Users</h3>
 
-                    <form class="form-inline">
-                        <input ng-model="newUserId" placeholder="Change Nickname"></input>
-                        <button class="btn" ng-click="changeUserId()">change</button>
-                    </form>
-
                     <ul id="userlist">
                         <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}" ng-hide="user.userId == 'host'">
                             <div class="ng-cloak">
-                                <img ng-hide="user.userInfo" src="/img/unknown.png" alt="{{ user.userId }}" />
-                                <img ng-show="user.userInfo" src="{{ user.userInfo.avatar_url }}" alt="{{ user.userId }}" />
+                                <img ng-hide="user.userInfo.avatar_url" src="/img/unknown.png" alt="{{ user.userId }}" />
+                                <img ng-show="user.userInfo.avatar_url" src="{{ user.userInfo.avatar_url }}" alt="{{ user.userId }}" />
                             </div>
-                            {{ user.userId }}
+                            <a ng-click="$parent.focusUser = user; $parent.selfDetailOpen = true">{{ user.userId }}</a><div ng-hide="user.role=='default'">({{user.role}})</div>
                         </li>
                     </ul>
-
                 </div>
 
                 <div class="span6">
@@ -93,6 +88,44 @@
             </div>
         </div>
     </div>
+
+    <!-- user modal -->
+    <div modal="selfDetailOpen" close="selfDetailOpen = false" options="{backdrop: false, dialogFade:true}">
+        <div class="modal-header">
+            <h3>{{focusUser.userId}}</h3>
+            <form class="form-inline" ng-show="focusUser.isYou">
+                <input ng-model="newUserId" placeholder="New Nickname"></input>
+                <button class="btn" ng-click="changeUserId()">change</button>
+            </form>         
+        </div>
+        <div class="modal-body">
+            <div class="ng-cloak">
+                <img ng-hide="focusUser.userInfo.avatar_url" src="/img/unknown.png" />
+                <img ng-show="focusUser.userInfo.avatar_url" src="{{ focusUser.userInfo.avatar_url }}" />
+            </div>
+
+            <a ng-show="focusUser.isYou && !focusUser.userInfo.username" class="btn-auth btn-github" ng-href="/auth/github?returnTo=/rooms/{{name}}">Sign in with <b>Github</b></a>
+
+            <div ng-show="currentUser.role=='moderator'">
+                <h4>Change Role</h4>
+                <div class="btn btn-small" ng-click="grantChangeRole(focusUser.userId, 'editor')">editor</div>
+                <div class="btn btn-small" ng-click="grantChangeRole(focusUser.userId, 'default')">default</div>
+            </div>
+
+            <div ng-show="focusUser.isYou && currentUser.role!='moderator'">
+                <h4>Request Role</h4>
+                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'editor')">editor</div>
+                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'default')">default</div>
+                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'moderator', moderatorPass)">moderator</div>
+                <input ng-model="moderatorPass" placeholder="moderator pass"></input>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary cancel" ng-click="selfDetailOpen = false">Close</button>
+        </div>
+    </div>
+    <!-- /user modal -->
 </div>
 <!-- /container -->
 
@@ -114,6 +147,9 @@
 <!-- <script src="/bower_components/angular-ui.github.com/angular-ui/build/angular-ui.js"></script> -->
 <script src="/bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
 <script src="/bower_components/angular-socket-io/socket.js"></script>
+<script src="/lib/bootstrap-custom/ui-bootstrap-custom-0.4.0.js"></script>
+<script src="/lib/bootstrap-custom/ui-bootstrap-custom-tpls-0.4.0.js"></script>
+
 
 <script>
     var roomName = '<%= roomId %>';

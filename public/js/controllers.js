@@ -75,7 +75,10 @@ angular.module('myApp.controllers', []).
     });
 
     socket.on('newUser', function(data){
-      $scope.users.push(data); 
+      $scope.users.push(data);
+      if(data.isYou==true){
+        $scope.currentUser = data;
+      }
     });
 
     socket.on('exitingUser', function(userId){
@@ -87,6 +90,12 @@ angular.module('myApp.controllers', []).
       var user = findUser(oldUserId);
       if(user)
         user.userId = newUserId;      
+    });
+
+    socket.on('userRoleChanged', function(userId, newRole){
+      var user = findUser(userId);
+      if(user)
+        user.role = newRole;      
     });
 
     var findUser = function(userId){
@@ -119,6 +128,16 @@ angular.module('myApp.controllers', []).
     $scope.changeUserId = function(){
       socket.emit('changeUserId', $scope.newUserId);
       $scope.newUserId = "";
+    };
+
+    $scope.grantChangeRole = function(userId, newRole){
+      console.log('grantChangeRole userId:%s newRole:%s', userId, newRole);
+      socket.emit('grantChangeRole', {userId:userId, newRole:newRole});
+    };
+
+    $scope.requestChangeRole = function(userId, newRole, pass){
+      console.log('requestChangeRole userId:%s newRole:%s pass:%s', userId, newRole, pass);
+      socket.emit('requestChangeRole', {userId:userId, newRole:newRole, pass:pass});
     };
 
     //***************************

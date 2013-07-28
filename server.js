@@ -75,7 +75,7 @@ app.get('/rooms', pageRoutes.rooms);
 app.get('/account', authRoutes.ensureAuthenticated, authRoutes.account);
 app.get('/login', authRoutes.login);
 app.get('/logout', authRoutes.logout);
-app.get('/auth/github',passport.authenticate('github'), authRoutes.notCalled);
+app.get('/auth/github',authRoutes.captureReturnTo, passport.authenticate('github'), authRoutes.notCalled);
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), authRoutes.callBack);
 
 //*** bind the express session to socket.io ***
@@ -90,6 +90,7 @@ io.sockets.on('connection', function(socket){
   require('./routes/socket_code').listen(io, socket, rooms);
   require('./routes/socket_file').listen(io, socket, rooms);
   require('./routes/socket_room').listen(io, socket, rooms);
+  require('./routes/socket_roles').listen(io, socket, rooms);
 });
 
 server.listen(app.get('port'), function () {
