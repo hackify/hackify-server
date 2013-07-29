@@ -20,3 +20,5 @@ body {
 
 #files {list-style-type: none; overflow: auto; height: 108px;}
 #files li {float: left; padding: 3px;}
+
+.chat-messages {overflow-y:   scroll;}  

@@ -71,7 +71,7 @@ angular.module('myApp.controllers', []).
     });
 
     socket.on('newChatMessage', function (message, userId) {
-      $scope.messages.push({message:message, userId:userId});
+      $scope.messages.push({message:message, userId:userId, date:new Date()});
     });
 
     socket.on('newUser', function(data){

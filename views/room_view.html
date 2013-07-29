@@ -76,14 +76,17 @@
 
                 <div class="span6">
                     <h3>Chat</h3>
+                    <div class="chat-messages" style="height: 205px;" scroll-to-bottom="messages">
+                        <div ng-repeat="message in messages">
+                            <div class="pull-right text-muted">{{message.date | date:'HH:mm:ss'}}</div>
+                            <span ng-class="{'text-warning':message.userId==currentUser.userId, 'text-info':message.userId!=currentUser.userId}">{{message.userId}}</span>
+                            <span class="text-success">: {{message.message}}</span>
+                        </div>
+                    </div>
                     <form class="form-inline">
                         <input ng-model="newMessage"></input>
                         <button class="btn" ng-click="newChatMessage()">send</button>
                     </form>
-
-                    <ul>
-                        <li ng-repeat="message in messages | reverse">{{ message | json }}</li>
-                    </ul>
                 </div>
             </div>
         </div>
