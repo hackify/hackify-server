@@ -93,6 +93,26 @@ io.sockets.on('connection', function(socket){
   require('./routes/socket_roles').listen(io, socket, rooms);
 });
 
+//***** Set up the demo room *****
+var demoModeratorPass = Math.floor(Math.random() * 999999).toString();
+var demoRoom = {
+  name: 'demo',
+  moderatorPass: demoModeratorPass,
+  readOnly: false,
+  files: ['/demo.js'],
+  currentFile: "demo.js",
+  body: "var x = 'hack me up!';",
+  hostSocket: null,
+  authMap: {
+    moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
+    editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true, 'changeRole':false},
+    default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false}
+  },
+  permanent: true
+}
+rooms['demo'] = demoRoom;
+winston.info('demo room created', {moderatorPass: demoModeratorPass});
+
 server.listen(app.get('port'), function () {
   winston.info("hackify server listening", { port: app.get('port') });
 });

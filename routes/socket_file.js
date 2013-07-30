@@ -12,7 +12,9 @@ module.exports.listen = function(io, socket, rooms){
   //client --> server --> Host (Client requests a file save, server tells the host to do it)
   socket.on('saveCurrentFile', function(){
     socketAuth.checkedOperation(rooms, socket, 'saveCurrentFile', function(room, userId){
-      rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body})
+      if(rooms[room].hostSocket){
+        rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body})        
+      }
     });    
   });
 

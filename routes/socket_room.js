@@ -108,7 +108,7 @@ module.exports.listen = function(io, socket, rooms){
           winston.info('user left room', {userId: userId, room:room, clientAddr: socket.handshake.address});
 
           //check if room is empty
-          if(io.sockets.clients(room).length===0){
+          if(io.sockets.clients(room).length===0 && !rooms[room].permanent){
             delete rooms[room];
             winston.info('room closed', {room:room});
           }
@@ -116,5 +116,4 @@ module.exports.listen = function(io, socket, rooms){
       }
     });
   });
-
 };
