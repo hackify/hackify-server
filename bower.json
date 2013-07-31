@@ -13,7 +13,6 @@
     "jquery":"latest",
     "bootstrap-css":"latest",
     "angular": "latest",
-    "angular-socket-io": "latest",
-    "angular-ui-codemirror": "git://github.com/hackify/ui-codemirror"
+    "angular-socket-io": "latest"
   }
 }
