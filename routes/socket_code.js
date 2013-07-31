@@ -21,7 +21,7 @@ module.exports.listen = function(io, socket, rooms){
   //client --> server --> clients (active editor sends incremental file data change to the server which then broadcasts it to other clients in the same room)
   socket.on('changeData', function (op) {
     socketAuth.checkedOperation(rooms, socket, 'editData', function(room, userId){
-      if (op.origin == '+input' || op.origin == 'paste' || op.origin == '+delete') {
+      if (op.origin == '+input' || op.origin == 'paste' || op.origin == '+delete' || op.origin == 'undo') {
         socket.broadcast.to(room).emit('changeData', op);
       };
     });
