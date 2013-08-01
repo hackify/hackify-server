@@ -33,6 +33,10 @@ angular.module('myApp.controllers', []).
       $scope.readOnly = readOnly;
     });
 
+    socket.on('roomAuthMap', function (authMap) {
+      $scope.authMap = authMap;
+    });
+
     socket.on('fileAdded', function(file) {
       $scope.files.push(file);
     });
@@ -48,18 +52,14 @@ angular.module('myApp.controllers', []).
     //server --> client (server sends fresh data for active file)
     socket.on('refreshData', function (body) {
       if(body){
-        // editor.setValue(body);
         $scope.body = body;
       }else{
-        // editor.setValue('')
         $scope.body = '';
       }
     });
 
     //server --> client (recieve an incremental operation from the active editor via the server)
     socket.on('changeData', function (data) {
-      // editor.replaceRange(data.text, data.from, data.to);
-      //TODO
       $scope.newChange = data;
     });
 
@@ -78,6 +78,7 @@ angular.module('myApp.controllers', []).
       $scope.users.push(data);
       if(data.isYou==true){
         $scope.currentUser = data;
+        checkCurrentUserReadOnly();
       }
     });
 
@@ -94,8 +95,11 @@ angular.module('myApp.controllers', []).
 
     socket.on('userRoleChanged', function(userId, newRole){
       var user = findUser(userId);
-      if(user)
+      if(user){
         user.role = newRole;      
+        if(user.isYou)
+          checkCurrentUserReadOnly();
+      }
     });
 
     var findUser = function(userId){
@@ -140,6 +144,14 @@ angular.module('myApp.controllers', []).
       socket.emit('requestChangeRole', {userId:userId, newRole:newRole, pass:pass});
     };
 
+    var checkCurrentUserReadOnly = function(){
+      if($scope.currentUser){
+        $scope.editorOptions.readOnly = ($scope.readOnly | !$scope.authMap[$scope.currentUser.role].editData===true);
+      }else{
+        $scope.editorOptions.readOnly = true;
+      }
+    };
+
     //***************************
     //**set up the code editor***
     //***************************
@@ -160,20 +172,10 @@ angular.module('myApp.controllers', []).
         lineWrapping : true,
         lineNumbers: true,
         matchBrackets: true,
-        readOnly: false,
-        mode: 'js',
+        readOnly: true,
+        mode: '',
         onChange: $scope.onEditorChange
     };
-
-
-
-      // editor.on('change', function (i, op) {
-      //   console.log('editor change:' + op);
-      //   socket.emit('changeData', op);
-      //   socket.emit('refreshData', editor.getValue(), false);//refresh data on server but don't broadcast
-      // });
-
-
   });
 
 

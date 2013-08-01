@@ -101,11 +101,11 @@ var demoRoom = {
   readOnly: false,
   files: ['/demo.js'],
   currentFile: "demo.js",
-  body: "var x = 'hack me up!';",
+  body: "var x = 'hackify rules!';",
   hostSocket: null,
   authMap: {
     moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
-    editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true, 'changeRole':false},
+    editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
     default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false}
   },
   permanent: true

@@ -20,7 +20,7 @@ module.exports.listen = function(io, socket, rooms){
       rooms[data.name].moderatorPass = data.moderatorPass;
       rooms[data.name].authMap = {
         moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
-        editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':true, 'changeRole':false},
+        editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
         default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
       }
 
@@ -62,6 +62,7 @@ module.exports.listen = function(io, socket, rooms){
       socket.emit('changeCurrentFile', roomState.currentFile);
       socket.emit('refreshData', roomState.body);
       socket.emit('roomReadOnly', roomState.readOnly);
+      socket.emit('roomAuthMap', roomState.authMap);
 
       //tell this socket about all of the users (including itself)
       var clients = io.sockets.clients(data.room);
