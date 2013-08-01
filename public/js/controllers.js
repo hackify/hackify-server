@@ -25,8 +25,9 @@ angular.module('myApp.controllers', []).
     //***************************
 
     //server --> client (notification that the active file has changed, data comes later)
-    socket.on('changeCurrentFile', function (file) {
+    socket.on('changeCurrentFile', function (file, mimeType) {
       $scope.currentFile = file;
+      $scope.editorOptions.mode = mimeType;
     });
 
     socket.on('roomReadOnly', function (readOnly) {

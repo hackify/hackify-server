@@ -2,7 +2,7 @@
   "author": "Michael Dausmann",
   "name": "hackify-server",
   "homepage": "http://hackify.org",
-  "version": "0.1.0-13",
+  "version": "0.1.0-14",
   "engines": {
     "node": ">= 0.8.12"
   },
@@ -14,7 +14,8 @@
     "passport-github": "0.1.5",
     "socket.io-session": "0.0.5",
     "winston": "0.7.2",
-    "async": "0.2.9"
+    "async": "0.2.9",
+    "mime": "1.2.x"
   },
   "devDependencies": {},
   "subdomain": "mdausmann.hackify",

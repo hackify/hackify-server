@@ -1,11 +1,12 @@
-var socketAuth = require('../lib/socket_auth');
+var socketAuth = require('../lib/socket_auth'),
+    mime = require('mime');
 
 module.exports.listen = function(io, socket, rooms){
   //client --> server --> client/host (client requests a change to the file which is passed on to the host so it can load the file and the clients so they can change the file heading)
   socket.on('changeCurrentFile', function(newFile){
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
       rooms[room].currentFile = newFile;
-      io.sockets.in(room).emit('changeCurrentFile', newFile);
+      io.sockets.in(room).emit('changeCurrentFile', newFile, mime.lookup(newFile));
     });    
   });
 

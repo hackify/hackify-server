@@ -1,5 +1,6 @@
 var vcompare = require('../lib/vcompare'),
     winston = require('winston'),
+    mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev'));
 
 module.exports.listen = function(io, socket, rooms){
@@ -59,7 +60,7 @@ module.exports.listen = function(io, socket, rooms){
       roomState.files.forEach(function(file){
         socket.emit('fileAdded', file)
       });
-      socket.emit('changeCurrentFile', roomState.currentFile);
+      socket.emit('changeCurrentFile', roomState.currentFile, mime.lookup(roomState.currentFile));
       socket.emit('refreshData', roomState.body);
       socket.emit('roomReadOnly', roomState.readOnly);
       socket.emit('roomAuthMap', roomState.authMap);
