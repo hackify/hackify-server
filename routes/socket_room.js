@@ -1,4 +1,5 @@
 var vcompare = require('../lib/vcompare'),
+    async = require('async'),
     winston = require('winston'),
     mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev'));
@@ -68,17 +69,28 @@ module.exports.listen = function(io, socket, rooms){
       //tell this socket about all of the users (including itself)
       var clients = io.sockets.clients(data.room);
       clients.forEach(function(client){
-        client.get('userId', function(err, clientUserId){
-          client.get('userInfo', function(err, clientUserInfo){
+        async.parallel([
+          function(callback){ client.get('userId', function(err, val){ callback(err, val); }); },
+          function(callback){ client.get('userInfo', function(err, val){ callback(err, val); }); },
+          function(callback){ client.get('role', function(err, val){ callback(err, val); }); },
+          function(callback){ client.get('requestedRole', function(err, val){ callback(err, val); }); }
+        ],
+        function(err, results){
+          if(!err){
+            var clientUserId = results[0], clientUserInfo = results[1], clientRole = results[2], clientRequestedRole = results[3];
+
             if(clientUserId){
               socket.emit('newUser', {
                 userId:clientUserId, 
                 isYou:(client===socket)?true:false,
                 userInfo: clientUserInfo,
-                role: 'default' //TODO - pull from client
+                role: clientRole,
+                requestedRole: clientRequestedRole
               });
             }
-          });
+          } else {
+            winston.error('problem determining socket info', {err:err});
+          }
         });
       });        
 

@@ -69,7 +69,10 @@
                                 <img ng-hide="user.userInfo.avatar_url" src="/img/unknown.png" alt="{{ user.userId }}" />
                                 <img ng-show="user.userInfo.avatar_url" src="{{ user.userInfo.avatar_url }}" alt="{{ user.userId }}" />
                             </div>
-                            <a ng-click="$parent.focusUser = user; $parent.selfDetailOpen = true">{{ user.userId }}</a><div ng-hide="user.role=='default'">({{user.role}})</div>
+                            <a ng-click="$parent.focusUser = user; $parent.selfDetailOpen = true">{{ user.userId }}</a>
+                            <div ng-hide="user.role=='default'">({{user.role}})</div>
+                            <div ng-show="user.requestedRole">[{{user.requestedRole}}]</div>
+                            <div ng-show="currentUser.role=='moderator' && user.requestedRole && user.requestedRole!=''" class="btn btn-mini" ng-click="grantRequestedRole(user.userId)">grant</div>
                         </li>
                     </ul>
                 </div>

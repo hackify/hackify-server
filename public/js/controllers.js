@@ -103,6 +103,13 @@ angular.module('myApp.controllers', []).
       }
     });
 
+    socket.on('requestedRole', function(userId, newRole){
+      var user = findUser(userId);
+      if(user){
+        user.requestedRole = newRole;
+      }
+    });    
+
     var findUser = function(userId){
       var foundUser = null;
       $scope.users.forEach(function(user){
@@ -138,6 +145,13 @@ angular.module('myApp.controllers', []).
     $scope.grantChangeRole = function(userId, newRole){
       console.log('grantChangeRole userId:%s newRole:%s', userId, newRole);
       socket.emit('grantChangeRole', {userId:userId, newRole:newRole});
+    };
+
+    $scope.grantRequestedRole = function(userId){
+      var user = findUser(userId);
+      if(user && user.requestedRole && user.requestedRole!=""){
+        socket.emit('grantChangeRole', {userId:userId, newRole:user.requestedRole});
+      }
     };
 
     $scope.requestChangeRole = function(userId, newRole, pass){
