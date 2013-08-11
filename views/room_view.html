@@ -36,17 +36,20 @@
 
             <div class="row-fluid">
                 <div class="span12">
-
-                    <h3>Files</h3>
-                    <ul id="files" class="clearfix">
-                        <li ng-repeat="file in files">
-                            <a href=""#" class="btn" ng-disabled="authMap[currentUser.role].changeCurrentFile!=true" ng-click="requestChangeCurrentFile(file)">{{ file }}</a>
-                        </li>
-                    </ul>
-
                     <form>
                         <ul class="breadcrumb">
-                            <li class="active">{{currentFile}}</li>
+                            <li class="active">
+                                current file:&nbsp;{{currentFile}}&nbsp;
+                                <span class="dropdown">
+                                  <a class="dropdown-toggle">choose new...</a>
+                                  <ul class="dropdown-menu">
+                                    <li ng-repeat="file in files">
+                                      <a href="#" ng-hide="authMap[currentUser.role].changeCurrentFile!=true" ng-click="requestChangeCurrentFile(file)">{{ file }}</a>
+                                      <span ng-show="authMap[currentUser.role].changeCurrentFile!=true">{{ file }}</span>
+                                    </li>
+                                  </ul>
+                                </span>
+                            </li>
                             <li class="text-warning" ng-hode="warning==''">{{warning}}</li>
                         </ul>
 
@@ -153,8 +156,9 @@
 <!-- <script src="/bower_components/angular-ui.github.com/angular-ui/build/angular-ui.js"></script> -->
 <script src="/lib/angular-ui-codemirror/ui-codemirror.js"></script>
 <script src="/bower_components/angular-socket-io/socket.js"></script>
-<script src="/lib/bootstrap-custom/ui-bootstrap-custom-0.4.0.js"></script>
-<script src="/lib/bootstrap-custom/ui-bootstrap-custom-tpls-0.4.0.js"></script>
+<!-- <script src="/lib/bootstrap-custom/ui-bootstrap-custom-0.4.0.js"></script>
+<script src="/lib/bootstrap-custom/ui-bootstrap-custom-tpls-0.4.0.js"></script> -->
+<script src="/lib/bootstrap-custom/ui-bootstrap-tpls-0.5.0.js"></script>
 
 
 <script>
