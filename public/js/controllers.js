@@ -143,7 +143,6 @@ angular.module('myApp.controllers', []).
     };
 
     $scope.grantChangeRole = function(userId, newRole){
-      console.log('grantChangeRole userId:%s newRole:%s', userId, newRole);
       socket.emit('grantChangeRole', {userId:userId, newRole:newRole});
     };
 
@@ -155,13 +154,12 @@ angular.module('myApp.controllers', []).
     };
 
     $scope.requestChangeRole = function(userId, newRole, pass){
-      console.log('requestChangeRole userId:%s newRole:%s pass:%s', userId, newRole, pass);
       socket.emit('requestChangeRole', {userId:userId, newRole:newRole, pass:pass});
     };
 
     var checkCurrentUserReadOnly = function(){
       if($scope.currentUser){
-        $scope.editorOptions.readOnly = ($scope.readOnly | !$scope.authMap[$scope.currentUser.role].editData===true);
+        $scope.editorOptions.readOnly = ($scope.readOnly || !$scope.authMap[$scope.currentUser.role].editData===true);
       }else{
         $scope.editorOptions.readOnly = true;
       }
