@@ -33,11 +33,14 @@ module.exports.listen = function(io, socket, rooms){
       rooms[data.name].files.forEach(function(file){
         socket.broadcast.to(data.name).emit('fileAdded', file)
       });
-      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);  
+      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);
+
+      //I wanted to give the host some positive feedback, also helps testing
+      socket.emit('roomCreated');
       winston.info('room created', { name:data.name, hostVersion: data.hostVersion, hostAddr: socket.handshake.address });
     }else{
       winston.info('refusing room create (version check failed)', {hostVersion:hostVersion, minHostVersion: config.minHostVersion});
-      socket.emit('error', 'cannot join room, minimum host version is ' + config.minHostVersion + ' your hackify version is ' + hostVersion + '. please update your hackify module (npm install -g hackify)')
+      socket.emit('error', 'cannot create room, minimum host version is ' + config.minHostVersion + ' your hackify version is ' + hostVersion + '. please update your hackify module (npm install -g hackify)')
     }
   });
 
@@ -48,7 +51,7 @@ module.exports.listen = function(io, socket, rooms){
       socket.join(data.room);
       socket.set('room', data.room);
 
-      var userInfo = (socket.handshake.session.passport.user)?socket.handshake.session.passport.user:{};
+      var userInfo = (socket.handshake.session && socket.handshake.session.passport.user)?socket.handshake.session.passport.user:{};
       socket.set('userInfo', userInfo);
 
       var userId = (userInfo.displayName)?userInfo.displayName:'hckr' + Math.floor(Math.random() * 9999).toString();
