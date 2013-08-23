@@ -17,7 +17,10 @@
     "async": "0.2.9",
     "mime": "1.2.x"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "should": "1.2.2",
+    "socket.io-client": "0.9.16"
+  },
   "subdomain": "mdausmann.hackify",
   "domains": [
     "hackify.org",

@@ -26,3 +26,11 @@ $ npm install -g karma
 $ cd test
 $ karma start
 ```
+
+## Running mocha tests (assumes server running locally)
+```
+$ npm install -g mocha
+$ cd test/server
+$ mocha *
+```
+
