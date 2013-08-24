@@ -99,6 +99,8 @@ module.exports.listen = function(io, socket, rooms){
 
       //now tell all of the other sockets about the new user
       socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo, role:'default'});
+      console.log('emitting roomJoined for ' + userId);
+      socket.emit('roomJoined');
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')
