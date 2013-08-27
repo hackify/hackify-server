@@ -2,6 +2,7 @@
   "author": "Michael Dausmann",
   "name": "hackify-server",
   "homepage": "http://hackify.org",
+  "main": "server.js",
   "version": "0.1.0-18",
   "engines": {
     "node": ">= 0.8.12"

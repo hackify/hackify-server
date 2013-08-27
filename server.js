@@ -51,7 +51,7 @@ passport.use(new gitHubStrategy({
 
 //*** set up the express app ***
 app.configure(function () {
-  app.set('port', config.port);
+  app.set('port', process.env.PORT || config.port);
   app.set('views', __dirname + '/views');
   app.engine('html', require('ejs').renderFile);  //I don't love ejs but I hate jade
   app.use(express.static(path.join(__dirname, 'public')));

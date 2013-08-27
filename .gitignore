@@ -8,6 +8,7 @@ lib-cov
 *.gz
 *.tmp
 *.DS_Store
+modulus-auto*.*
 
 pids
 logs
