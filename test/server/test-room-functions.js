@@ -1,7 +1,8 @@
 var should = require('should');
 var io = require('socket.io-client');
+var config = require('./config_mocha');
 
-var socketURL = 'http://localhost:4000';
+var socketURL = config.socketURL;
 
 var options ={
   transports: ['websocket'],
@@ -10,6 +11,8 @@ var options ={
 
 describe("Room Functions",function(){
   var hostClient;
+
+  this.timeout(20000);
 
   beforeEach(function(done){
     hostClient = io.connect(socketURL, options);
