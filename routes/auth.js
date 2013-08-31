@@ -1,9 +1,17 @@
+config = require('../config_' + (process.env.NODE_ENV || 'dev'));
+
 module.exports.account = function(req, res){
-  res.render('account_view.html', { user: req.user });
+  res.render('account_view.html', { 
+    user: req.user,
+    gaTrackingId: config.gaTrackingId
+  });
 };
 
 module.exports.login = function(req, res){
-  res.render('login_view.html', { user: req.user });
+  res.render('login_view.html', { 
+    user: req.user,
+    gaTrackingId: config.gaTrackingId
+  });
 };
 
 module.exports.logout = function(req, res){
