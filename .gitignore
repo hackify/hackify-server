@@ -9,6 +9,7 @@ lib-cov
 *.tmp
 *.DS_Store
 modulus-auto*.*
+npm-shrinkwrap.json
 
 pids
 logs
