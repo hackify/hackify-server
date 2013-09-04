@@ -1,6 +1,7 @@
 var vcompare = require('../lib/vcompare'),
     async = require('async'),
     winston = require('winston'),
+    uaw = require('../lib/universal-analytics-wrapper'),
     mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev'));
 
@@ -99,8 +100,16 @@ module.exports.listen = function(io, socket, rooms){
 
       //now tell all of the other sockets about the new user
       socket.broadcast.to(data.room).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo, role:'default'});
-      console.log('emitting roomJoined for ' + userId);
       socket.emit('roomJoined');
+      
+      var visitor = uaw.getVisitor(socket.handshake.session);
+      if(visitor){
+        if(data.room==='demo')
+          visitor.debug().event("aquisition", "Joined Demo Room").send();
+        else if(clients.length > 2)
+          visitor.debug().event("aquisition", "Joined Hosted Room").send();        
+      }
+
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')

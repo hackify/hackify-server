@@ -1,4 +1,5 @@
-var socketAuth = require('../lib/socket_auth');
+var socketAuth = require('../lib/socket_auth'),
+    uaw = require('../lib/universal-analytics-wrapper');
 
 module.exports.listen = function(io, socket, rooms){
 
@@ -6,7 +7,11 @@ module.exports.listen = function(io, socket, rooms){
     var grantUserId = data.userId, newRole = data.newRole;  
     //TODO - Check that newRole is valid.. rooms[room].authmap[newRole]
     socketAuth.checkedOperation(rooms, socket, 'changeRole', function(room, userId){
-      doRoleChange(io, room, grantUserId, newRole);       
+      doRoleChange(io, room, grantUserId, newRole);
+      var visitor = uaw.getVisitor(socket.handshake.session);
+      if(visitor){
+        visitor.debug().event("referral", "Grant Role to another User").send();
+      }             
     });
   });
 
@@ -17,6 +22,12 @@ module.exports.listen = function(io, socket, rooms){
       if(newRole==='moderator'){
         if(pass===rooms[room].moderatorPass){
           doRoleChange(io, room, grantUserId, newRole);
+
+          var visitor = uaw.getVisitor(socket.handshake.session);
+          if(visitor){
+            visitor.debug().event("activation", "Host A Room").send();
+          }
+
         }else{
           socket.emit('newChatMessage', 'moderator password incorrect');
         }

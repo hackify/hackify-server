@@ -4,6 +4,7 @@ var express = require('express'),
   passport = require('passport'),
   gitHubStrategy = require('passport-github').Strategy,
   winston = require('winston'),
+  uaw = require('./lib/universal-analytics-wrapper'),
   http = require('http'),
   path = require('path'),
   config = require('./config_' + (process.env.NODE_ENV || 'dev')),
@@ -59,6 +60,7 @@ app.configure(function () {
   app.use(express.cookieParser(config.siteSecret));
   app.use(express.bodyParser());
   app.use(express.session({key: 'connect.sid', store: sessionStore}));
+  app.use(uaw.cookieConfigurer(config.gaTrackingId));
   app.use(passport.initialize());
   app.use(passport.session());
 

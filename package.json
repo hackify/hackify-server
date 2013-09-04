@@ -16,7 +16,8 @@
     "socket.io-session": "0.0.5",
     "winston": "0.7.2",
     "async": "0.2.9",
-    "mime": "1.2.x"
+    "mime": "1.2.x",
+    "universal-analytics": "0.2.3"
   },
   "devDependencies": {
     "should": "1.2.2",
