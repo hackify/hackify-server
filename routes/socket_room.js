@@ -106,8 +106,8 @@ module.exports.listen = function(io, socket, rooms){
       if(visitor){
         if(data.room==='demo')
           visitor.debug().event("aquisition", "Joined Demo Room").send();
-        else if(clients.length > 2)
-          visitor.debug().event("aquisition", "Joined Hosted Room").send();        
+        else if(data.room !== config.testRoomName)
+          visitor.debug().event("activation", "Joined Hosted Room").send();        
       }
 
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});

@@ -1,6 +1,7 @@
 var should = require('should');
 var io = require('socket.io-client');
 var config = require('./config_mocha');
+var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
 
 var socketURL = config.socketURL;
 
@@ -19,7 +20,7 @@ describe("Room Functions",function(){
 
     hostClient.on('connect', function(data){
       hostClient.emit('createRoom', {
-        name: 'test',
+        name: mainConfig.testRoomName,
         moderatorPass: '1234',
         readOnly: false,
         hostVersion: "0.1.4"
@@ -41,11 +42,11 @@ describe("Room Functions",function(){
     var user2Client;
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
       user2Client = io.connect(socketURL, options);
 
       user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: 'test'});
+        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
         user2Client.on('changeCurrentFile', function(newFile){
           newFile.should.equal('no file');

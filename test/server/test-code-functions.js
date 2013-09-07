@@ -1,6 +1,7 @@
 var should = require('should');
 var io = require('socket.io-client');
 var config = require('./config_mocha');
+var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
 
 var socketURL = config.socketURL;
 
@@ -19,7 +20,7 @@ describe("Chat Functions",function(){
 
     hostClient.on('connect', function(data){
       hostClient.emit('createRoom', {
-        name: 'test',
+        name: mainConfig.testRoomName,
         moderatorPass: '1234',
         readOnly: false,
         hostVersion: "0.1.4"
@@ -41,7 +42,7 @@ describe("Chat Functions",function(){
     var user2Client;
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
       
       //need to have access permissions to mess about with data so get moderator role
       user1Client.emit('changeUserId', 'bob');
@@ -57,7 +58,7 @@ describe("Chat Functions",function(){
         user2Client = io.connect(socketURL, options);
 
         user2Client.on('connect', function(data){
-          user2Client.emit('joinRoom', {room: 'test'});
+          user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
           user2Client.on('refreshData', function(data){
             data.should.equal('this is the body');
             user1Client.disconnect();
@@ -74,7 +75,7 @@ describe("Chat Functions",function(){
     var user2Client;refreshCounter = 0;
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
       
       user1Client.on('refreshData', function(data){
@@ -90,7 +91,7 @@ describe("Chat Functions",function(){
       user2Client = io.connect(socketURL, options);
 
       user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: 'test'});
+        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
         user2Client.on('roomJoined', function(){
           user2Client.emit('changeUserId', 'charlene');
@@ -109,7 +110,7 @@ describe("Chat Functions",function(){
     var user2Client;refreshCounter = 0;
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
       
      user1Client.on('changeData', function(op){
@@ -122,7 +123,7 @@ describe("Chat Functions",function(){
       user2Client = io.connect(socketURL, options);
 
       user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: 'test'});
+        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
         user2Client.on('roomJoined', function(){
           user2Client.emit('changeUserId', 'charlene');

@@ -1,6 +1,7 @@
 var should = require('should');
 var io = require('socket.io-client');
 var config = require('./config_mocha');
+var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
 
 var socketURL = config.socketURL;
 
@@ -19,7 +20,7 @@ describe("Chat Functions",function(){
 
     hostClient.on('connect', function(data){
       hostClient.emit('createRoom', {
-        name: 'test',
+        name: mainConfig.testRoomName,
         moderatorPass: '1234',
         readOnly: false,
         hostVersion: "0.1.4"
@@ -40,7 +41,7 @@ describe("Chat Functions",function(){
     var user1Client = io.connect(socketURL, options);
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
     });
 
     var newUserCount = 0;
@@ -76,13 +77,13 @@ describe("Chat Functions",function(){
     checkMessage(user1Client);
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
 
       user2Client = io.connect(socketURL, options);
       checkMessage(user2Client);
 
       user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: 'test'});
+        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
         user2Client.emit('newChatMessage', message);
       });
     });
@@ -108,7 +109,7 @@ describe("Chat Functions",function(){
     checkMessage(user1Client);
 
     user1Client.on('connect', function(data){
-      user1Client.emit('joinRoom', {room: 'test'});
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
       user1Client.emit('changeUserId', 'charlene');
     });
   });//it should
