@@ -3,7 +3,8 @@ var vcompare = require('../lib/vcompare'),
     winston = require('winston'),
     uaw = require('../lib/universal-analytics-wrapper'),
     mime = require('mime'),
-    config = require('../config_' + (process.env.NODE_ENV || 'dev'));
+    config = require('../config_' + (process.env.NODE_ENV || 'dev')),
+    socketRoles = require('./socket_roles');
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
@@ -111,6 +112,11 @@ module.exports.listen = function(io, socket, rooms){
       }
 
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
+      
+      //make user the moderator if they are the first joiner
+      if(io.sockets.clients(data.room).length === 1){
+        socketRoles.doRoleChange(io, data.room, userId, 'moderator');
+      }
     }else{
       socket.emit('newChatMessage','room ' + data.room + ' does not exist', 'hackify')
     }

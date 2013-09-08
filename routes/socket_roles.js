@@ -7,7 +7,7 @@ module.exports.listen = function(io, socket, rooms){
     var grantUserId = data.userId, newRole = data.newRole;  
     //TODO - Check that newRole is valid.. rooms[room].authmap[newRole]
     socketAuth.checkedOperation(rooms, socket, 'changeRole', function(room, userId){
-      doRoleChange(io, room, grantUserId, newRole);
+      module.exports.doRoleChange(io, room, grantUserId, newRole);
       var visitor = uaw.getVisitor(socket.handshake.session);
       if(visitor){
         visitor.debug().event("referral", "Grant Role to another User").send();
@@ -21,7 +21,7 @@ module.exports.listen = function(io, socket, rooms){
     socketAuth.getSocketInfo(rooms, socket, 'changeRole', function(room, userId, role){
       if(newRole==='moderator'){
         if(pass===rooms[room].moderatorPass){
-          doRoleChange(io, room, grantUserId, newRole);
+          module.exports.doRoleChange(io, room, grantUserId, newRole);
 
           var visitor = uaw.getVisitor(socket.handshake.session);
           if(visitor){
@@ -33,7 +33,7 @@ module.exports.listen = function(io, socket, rooms){
         }
       }else{
         if(newRole==='default'){
-          doRoleChange(io, room, grantUserId, newRole);
+          module.exports.doRoleChange(io, room, grantUserId, newRole);
         }else{
           socket.set('requestedRole', newRole);
           io.sockets.in(room).emit('requestedRole',userId, newRole);
@@ -42,7 +42,7 @@ module.exports.listen = function(io, socket, rooms){
     });
   });
 
-  var doRoleChange = function(io, room, userId, newRole){
+  module.exports.doRoleChange = function(io, room, userId, newRole){
     var clients = io.sockets.clients(room);
     clients.forEach(function(client){
       client.get('userId', function(err, clientUserId){
