@@ -9,7 +9,8 @@ var express = require('express'),
   path = require('path'),
   config = require('./config_' + (process.env.NODE_ENV || 'dev')),
   pageRoutes = require('./routes/page'),
-  authRoutes = require('./routes/auth')
+  authRoutes = require('./routes/auth'),
+  eventRoutes = require('./routes/event')
 ;
 
 //server state
@@ -63,7 +64,6 @@ app.configure(function () {
   app.use(uaw.cookieConfigurer(config.gaTrackingId));
   app.use(passport.initialize());
   app.use(passport.session());
-
   app.use(express.methodOverride());
   app.use(app.router);
 });
@@ -79,6 +79,16 @@ app.get('/login', authRoutes.login);
 app.get('/logout', authRoutes.logout);
 app.get('/auth/github',authRoutes.captureReturnTo, passport.authenticate('github'), authRoutes.notCalled);
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), authRoutes.callBack);
+
+//*** event rest api ***
+app.get('/api/tags', eventRoutes.getTags);
+app.get('/api/events', eventRoutes.getAllEvents);
+app.get('/api/events/tagged/:tags', eventRoutes.getEventsByTag);
+app.get('/api/events/:key', eventRoutes.get);
+app.del('/api/events/:key', eventRoutes.delete);
+//app.post('/api/events', authRoutes.ensureAuthenticated, eventRoutes.store);
+app.post('/api/events', eventRoutes.store);
+
 
 //*** bind the express session to socket.io ***
 io.set('authorization', ioSession(express.cookieParser(config.siteSecret), sessionStore, function(data, accept){

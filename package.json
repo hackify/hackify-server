@@ -21,7 +21,8 @@
   },
   "devDependencies": {
     "should": "1.2.2",
-    "socket.io-client": "0.9.16"
+    "socket.io-client": "0.9.16",
+    supertest": "0.7.1"
   },
   "subdomain": "mdausmann.hackify",
   "domains": [
