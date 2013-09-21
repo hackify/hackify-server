@@ -6,30 +6,29 @@ var em = require('../../lib/events_manager_hash');
 
 describe("Events rest Test",function(){
   beforeEach(function(done){
-  	done();
+    done();
   });
 
   afterEach(function(done){
- //  	request(config.socketURL)
-	// .del('/api/events/testEvent')
-	// .end(function(err, res){
-		done();	
-	// });
-  });
+ //    request(config.socketURL)
+  // .del('/api/events/testEvent')
+  // .end(function(err, res){
+    done();  
+  // });
+});
 
   it('Should create a new event', function(done){
-  	var startTime = new Date();
+    var startTime = new Date();
 
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	
-  	request(config.socketURL)
-	.post('/api/events')
-	.send(newEvent)
-	// .expect('Content-Type', /json/)
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    
+    request(config.socketURL)
+    .post('/api/events')
+    .send(newEvent)
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
           // this is should.js syntax, very clear
           res.should.have.status(200);
 
@@ -40,18 +39,18 @@ describe("Events rest Test",function(){
   });//it should
 
   it('Should create a second new event', function(done){
-  	var startTime = new Date();
+    var startTime = new Date();
 
-  	var newEvent = new em.Event('test2Event', 'This is a 2 test', startTime, '2mod123', 'dancing node skating');
-  	
-  	request(config.socketURL)
-	.post('/api/events')
-	.send(newEvent)
-	// .expect('Content-Type', /json/)
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
+    var newEvent = new em.Event('test2Event', 'This is a 2 test', startTime, '2mod123', 'dancing node skating');
+    
+    request(config.socketURL)
+    .post('/api/events')
+    .send(newEvent)
+  // .expect('Content-Type', /json/)
+  .end(function(err, res) {
+    if (err) {
+      throw err;
+    }
           // this is should.js syntax, very clear
           res.should.have.status(200);
 
@@ -61,14 +60,14 @@ describe("Events rest Test",function(){
         });
   });//it should
 
-  it('Should retrieve all events', function(done){  	
-  	request(config.socketURL)
-	.get('/api/events')
-	.set('Accept', 'application/json')
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
+  it('Should retrieve all events', function(done){    
+    request(config.socketURL)
+    .get('/api/events')
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
           // this is should.js syntax, very clear
           res.should.have.status(200);
 
@@ -80,14 +79,14 @@ describe("Events rest Test",function(){
   });//it should
 
 
-  it('Should retrieve events by single tag', function(done){  	
-  	request(config.socketURL)
-	.get('/api/events/tagged/javascript')
-	.set('Accept', 'application/json')
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
+  it('Should retrieve events by single tag', function(done){    
+    request(config.socketURL)
+    .get('/api/events/tagged/javascript')
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
           // this is should.js syntax, very clear
           res.should.have.status(200);
 
@@ -99,61 +98,53 @@ describe("Events rest Test",function(){
   });//it should
 
   it('Should retrieve events by multiple tags', function(done){
-  	request(config.socketURL)
-	.get('/api/events/tagged/javascript dancing')
-	.set('Accept', 'application/json')
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
-          res.should.have.status(200);
+    request(config.socketURL)
+    .get('/api/events/tagged/javascript dancing')
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
+      res.should.have.status(200);
 
-          res.body[0].key.should.equal('testEvent');
-          res.body.length.should.equal(2);
+      res.body[0].key.should.equal('testEvent');
+      res.body.length.should.equal(2);
 
-          done();
-        });
+      done();
+    });
   });//it should
 
   it('Should retrieve tags', function(done){
-  	request(config.socketURL)
-	.get('/api/tags')
-	.set('Accept', 'application/json')
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
-          res.should.have.status(200);
+    request(config.socketURL)
+    .get('/api/tags')
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
+      res.should.have.status(200);
 
-          res.body[0].tag.should.equal('javascript');
-          res.body.length.should.equal(5);
+      res.body[0].tag.should.equal('javascript');
+      res.body.length.should.equal(5);
 
-          done();
-        });
+      done();
+    });
   });//it should
 
   it('Should retrieve by key', function(done){
-  	request(config.socketURL)
-	.get('/api/events/test2Event')
-	.set('Accept', 'application/json')
-	.end(function(err, res) {
-          if (err) {
-            throw err;
-          }
-          res.should.have.status(200);
+    request(config.socketURL)
+    .get('/api/events/test2Event')
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
+      res.should.have.status(200);
 
-          res.body.key.should.equal('test2Event');
+      res.body.key.should.equal('test2Event');
 
-          done();
-        });
+      done();
+    });
   });//it should
-
-/*
-app.get('/api/events', eventRoutes.getAllEvents);
-app.get('/api/events/tagged/:tags', eventRoutes.getEventsByTag);
-app.get('/api/events/:key', eventRoutes.get);
-app.get('/api/events/tags', eventRoutes.getTags);
-app.post('/api/events', authRoutes.ensureAuthenticated, eventRoutes.store);
-*/
 
 });//describe

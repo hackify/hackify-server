@@ -5,170 +5,174 @@ var em = require('../../lib/events_manager_hash');
 
 describe("Events Manager Test",function(){
   beforeEach(function(done){
-  	done();
+    done();
   });
 
   afterEach(function(done){
-  	em.reset();
+    em.reset();
+
     done();
   });
 
   it('Should create a new event', function(done){
-  	var startTime = new Date();
+    var startTime = new Date();
 
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	
-  	newEvent.key.should.equal('testEvent');
-  	newEvent.description.should.equal('This is a test');
-  	newEvent.startDateTime.should.equal(startTime);
-  	newEvent.moderatorPass.should.equal('mod123');
-  	newEvent.status.should.equal('closed');
-  	done(); 
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
 
+    newEvent.key.should.equal('testEvent');
+    newEvent.description.should.equal('This is a test');
+    newEvent.startDateTime.should.equal(startTime);
+    newEvent.moderatorPass.should.equal('mod123');
+    newEvent.status.should.equal('closed');
+    
+    done(); 
+  });//it should
+
+  it('Should create a new event with comments', function(done){
+    var startTime = new Date();
+
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js', [{userName:"bob", comment:"this is my first comment"},{userName:"sally", comment:"I disagree with bob"}]);
+
+    newEvent.key.should.equal('testEvent');
+    newEvent.comments.length.should.equal(2);
+    newEvent.comments[0].userName.should.equal('bob');
+    
+    done(); 
   });//it should
 
   it('Should store and retrieve an event', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	em.store(newEvent);
-  	var retrievedEvent = em.getByKey('testEvent');
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
+    var retrievedEvent = em.getByKey('testEvent');
 
-  	retrievedEvent.key.should.equal('testEvent');
-  	retrievedEvent.description.should.equal('This is a test');
-  	retrievedEvent.startDateTime.should.equal(startTime);
-  	retrievedEvent.moderatorPass.should.equal('mod123');
-  	retrievedEvent.status.should.equal('closed');
-  	done(); 
-
+    retrievedEvent.key.should.equal('testEvent');
+    retrievedEvent.description.should.equal('This is a test');
+    retrievedEvent.startDateTime.should.equal(startTime);
+    retrievedEvent.moderatorPass.should.equal('mod123');
+    retrievedEvent.status.should.equal('closed');
+    
+    done(); 
   });//it should
 
   it('Should retrieve all events', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	var retrievedEvents = em.getAllEvents();
+    var retrievedEvents = em.getAllEvents();
 
-  	retrievedEvents.length.should.equal(2);
+    retrievedEvents.length.should.equal(2);
 
-  	var retrievedEvent = em.getByKey('test2Event');
+    var retrievedEvent = em.getByKey('test2Event');
 
-  	retrievedEvent.key.should.equal('test2Event');
-  	retrievedEvent.description.should.equal('This is 2 a test');
-  	retrievedEvent.startDateTime.should.equal(startTime);
-  	retrievedEvent.moderatorPass.should.equal('2mod123');
-  	retrievedEvent.status.should.equal('closed');
-  	done(); 
-
+    retrievedEvent.key.should.equal('test2Event');
+    retrievedEvent.description.should.equal('This is 2 a test');
+    retrievedEvent.startDateTime.should.equal(startTime);
+    retrievedEvent.moderatorPass.should.equal('2mod123');
+    retrievedEvent.status.should.equal('closed');
+    
+    done(); 
   });//it should
 
   it('Should delete an event', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'sailing node node.js');
-  	em.store(newEvent);
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'sailing node node.js');
+    em.store(newEvent);
 
-  	var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node dancing');
-  	em.store(newEvent);
+    var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node dancing');
+    em.store(newEvent);
 
-  	console.log(JSON.stringify(em.getTags()));
+    em.delete('testEvent')
 
-  	em.delete('testEvent')
+    var retrievedEvents = em.getAllEvents();
 
-  	var retrievedEvents = em.getAllEvents();
+    retrievedEvents.length.should.equal(1);
 
-  	retrievedEvents.length.should.equal(1);
+    var retrievedTags = em.getTags();
 
-  	var retrievedTags = em.getTags();
+    retrievedTags.length.should.equal(3);
 
-  	console.log(JSON.stringify(em.getTags()));
-
-  	retrievedTags.length.should.equal(3);
-
-  	done(); 
-
+    done(); 
   });//it should
 
   it('Should exist an event', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	em.exists('testEvent').should.equal(true);
-  	em.exists('sillyEvent').should.equal(false);
+    em.exists('testEvent').should.equal(true);
+    em.exists('sillyEvent').should.equal(false);
 
 
-  	done(); 
-
+    done(); 
   });//it should
 
   it('Should retrieve events by tag', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'dancing node skating');
-  	em.store(newEvent);
+    var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'dancing node skating');
+    em.store(newEvent);
 
-  	var retrievedEvents = em.getEventsByTag(['node']);
+    var retrievedEvents = em.getEventsByTag(['node']);
 
-  	retrievedEvents.length.should.equal(2);
+    retrievedEvents.length.should.equal(2);
 
-  	var retrievedEvents2 = em.getEventsByTag(['dancing']);
+    var retrievedEvents2 = em.getEventsByTag(['dancing']);
 
-  	retrievedEvents2.length.should.equal(1);
+    retrievedEvents2.length.should.equal(1);
 
 
-  	var retrievedEvent = retrievedEvents2[0];
+    var retrievedEvent = retrievedEvents2[0];
 
-  	retrievedEvent.key.should.equal('test2Event');
-  	retrievedEvent.description.should.equal('This is 2 a test');
-  	retrievedEvent.startDateTime.should.equal(startTime);
-  	retrievedEvent.moderatorPass.should.equal('2mod123');
-  	retrievedEvent.status.should.equal('closed');
+    retrievedEvent.key.should.equal('test2Event');
+    retrievedEvent.description.should.equal('This is 2 a test');
+    retrievedEvent.startDateTime.should.equal(startTime);
+    retrievedEvent.moderatorPass.should.equal('2mod123');
+    retrievedEvent.status.should.equal('closed');
 
-  	var retrievedEvents3 = em.getEventsByTag(['javascript', 'skating']);
+    var retrievedEvents3 = em.getEventsByTag(['javascript', 'skating']);
 
-  	retrievedEvents3.length.should.equal(2);
+    retrievedEvents3.length.should.equal(2);
 
-  	var retrievedEvents4 = em.getEventsByTag(['silly']);
+    var retrievedEvents4 = em.getEventsByTag(['silly']);
 
-  	retrievedEvents4.length.should.equal(0);
+    retrievedEvents4.length.should.equal(0);
 
-  	var retrievedEvents5 = em.getEventsByTag(['silly', 'skating']);
+    var retrievedEvents5 = em.getEventsByTag(['silly', 'skating']);
 
-  	retrievedEvents5.length.should.equal(1);
+    retrievedEvents5.length.should.equal(1);
 
-  	done(); 
-
+    done(); 
   });//it should
 
   it('Should retrieve tags', function(done){
-  	var startTime = new Date();
-  	var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-  	em.store(newEvent);
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
 
-  	var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'dancing node skating');
-  	em.store(newEvent);
+    var newEvent = new em.Event('test2Event', 'This is 2 a test', startTime, '2mod123', 'dancing node skating');
+    em.store(newEvent);
 
-  	var retrievedTags = em.getTags();
+    var retrievedTags = em.getTags();
 
-  	retrievedTags.length.should.equal(5);
-  	
-  	var findTag = retrievedTags.filter(function (element) { 
-    	return element.tag === 'javascript' && element.eventCount===1;
-	});
+    retrievedTags.length.should.equal(5);
 
+    var findTag = retrievedTags.filter(function (element) { 
+     return element.tag === 'node';
+    });
 
-  	findTag.length.should.equal(1);
+    findTag[0].eventCount.should.equal(2);
 
-  	done(); 
-
+    done(); 
   });//it should
 
 });//describe
