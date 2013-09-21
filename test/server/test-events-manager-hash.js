@@ -175,4 +175,21 @@ describe("Events Manager Test",function(){
     done(); 
   });//it should
 
+  it('Should add comments', function(done){
+    var startTime = new Date();
+    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+    em.store(newEvent);
+
+    em.addComment('testEvent', {userId:'bob', comment:'the rain in spain'});
+
+    var retrievedEvent = em.getByKey('testEvent');
+
+    retrievedEvent.comments.length.should.equal(1);
+    retrievedEvent.comments[0].userId.should.equal('bob');
+    retrievedEvent.comments[0].comment.should.equal('the rain in spain');
+
+    done(); 
+  });//it should
+
+
 });//describe

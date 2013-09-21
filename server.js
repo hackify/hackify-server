@@ -23,6 +23,7 @@ var io = require('socket.io').listen(server);
 //*** Passport session setup ***
 passport.serializeUser(function(user, done) {
   var userInfo = {
+    "userId":user.provider + '|' + user.username,
     "provider":user.provider,
     "displayName":user.displayName,
     "username":user.username,
@@ -72,6 +73,8 @@ app.configure(function () {
 app.get('/', pageRoutes.index);
 app.get('/rooms/:roomId', pageRoutes.room);
 app.get('/rooms', pageRoutes.rooms);
+app.get('/events', pageRoutes.events);
+app.get('/events/:key', pageRoutes.events);
 
 //*** Login, Account and Callback routes ***
 app.get('/account', authRoutes.ensureAuthenticated, authRoutes.account);
@@ -79,6 +82,7 @@ app.get('/login', authRoutes.login);
 app.get('/logout', authRoutes.logout);
 app.get('/auth/github',authRoutes.captureReturnTo, passport.authenticate('github'), authRoutes.notCalled);
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), authRoutes.callBack);
+app.get('/api/currentuser', authRoutes.currentUser);
 
 //*** event rest api ***
 app.get('/api/tags', eventRoutes.getTags);
@@ -86,8 +90,9 @@ app.get('/api/events', eventRoutes.getAllEvents);
 app.get('/api/events/tagged/:tags', eventRoutes.getEventsByTag);
 app.get('/api/events/:key', eventRoutes.get);
 app.del('/api/events/:key', eventRoutes.delete);
-//app.post('/api/events', authRoutes.ensureAuthenticated, eventRoutes.store);
+// app.post('/api/events', authRoutes.ensureAuthenticated, eventRoutes.store);
 app.post('/api/events', eventRoutes.store);
+app.post('/api/events/:key/comments', eventRoutes.addComment);
 
 
 //*** bind the express session to socket.io ***

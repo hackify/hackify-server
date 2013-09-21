@@ -147,4 +147,23 @@ describe("Events rest Test",function(){
     });
   });//it should
 
+  it('Should add comments', function(done){
+    var newComment = {userId:'bob', comment:'the rain in spain'}
+    request(config.socketURL)
+    .post('/api/events/test2Event/comments')
+    .send(newComment)
+    .end(function(err, res) {
+      if (err) {
+        throw err;
+      }
+          res.should.have.status(200);
+
+          res.body.comments.length.should.equal(1);
+          res.body.comments[0].userId.should.equal('bob');
+          res.body.comments[0].comment.should.equal('the rain in spain');
+
+          done();
+        });
+  });//it should
+
 });//describe

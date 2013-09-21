@@ -64,12 +64,15 @@ describe("Chat Functions",function(){
 
     var checkMessage = function(client){
       client.on('newChatMessage', function(msg, userId){
-        msg.should.equal(message);
-        client.disconnect();
-        messages++;
-        if(messages === 2){
-          done();
-        };
+        //interested only in user messages
+        if(userId!='hackify'){
+          msg.should.equal(message);
+          client.disconnect();
+          messages++;
+          if(messages === 2){
+            done();
+          };
+        }
       });
     };
 
@@ -91,6 +94,7 @@ describe("Chat Functions",function(){
 
   it('Should change user id and broadcast change and a chat message to all users', function(done){
     var user1Client;
+    var messages = 0;
 
     var checkMessage = function(client){
       client.on('userIdChanged', function(userId, newUserId){
@@ -99,9 +103,12 @@ describe("Chat Functions",function(){
       });
 
       client.on('newChatMessage', function(msg, userId){
-        msg.indexOf('changed name to charlene').should.not.equal(-1);
-        client.disconnect();
-        done();
+        messages++;
+        if(messages==2){
+          msg.indexOf('changed name to charlene').should.not.equal(-1);
+          client.disconnect();
+          done();
+        }
       });
     };
 

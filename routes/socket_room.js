@@ -4,42 +4,60 @@ var vcompare = require('../lib/vcompare'),
     uaw = require('../lib/universal-analytics-wrapper'),
     mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev')),
-    socketRoles = require('./socket_roles');
+    socketRoles = require('./socket_roles'),
+    em = require('../lib/events_manager_' + ((config.redisHost)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
   socket.on('createRoom', function (data) {
     var hostVersion = (data.hostVersion)?data.hostVersion:"0.1.0";
     if(vcompare.compare(hostVersion, config.minHostVersion) >= 0){
-      socket.set('room', data.name);
-      socket.set('userId', 'host');
-      socket.set('role', 'host');
-      socket.join(data.name);
+      var eventModeratorPass=null;
+      if(em.exists(data.name)){
+        eventModeratorPass = em.getByKey(data.name).moderatorPass;
+      };
 
-      rooms[data.name] = data;
-      rooms[data.name].files = [];
-      rooms[data.name].currentFile = "no file";
-      rooms[data.name].body = "";
-      rooms[data.name].hostSocket = socket;
-      rooms[data.name].moderatorPass = data.moderatorPass;
-      rooms[data.name].authMap = {
-        moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
-        editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
-        default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
+      if(eventModeratorPass===null || eventModeratorPass===data.moderatorPass){
+        socket.set('room', data.name);
+        socket.set('userId', 'host');
+        socket.set('role', 'host');
+        socket.join(data.name);
+
+        rooms[data.name] = data;
+        rooms[data.name].files = [];
+        rooms[data.name].currentFile = "no file";
+        rooms[data.name].body = "";
+        rooms[data.name].hostSocket = socket;
+        rooms[data.name].moderatorPass = data.moderatorPass;
+        rooms[data.name].authMap = {
+          moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
+          editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
+          default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
+        }
+
+        //reset the other participants (if any) 
+        socket.broadcast.to(data.name).emit('newUser', {userId:'host', isYou:false});
+        socket.broadcast.to(data.name).emit('newChatMessage', 'host has re-entered the room', 'hackify');
+        socket.broadcast.to(data.name).emit('resetHostData');
+        rooms[data.name].files.forEach(function(file){
+          socket.broadcast.to(data.name).emit('fileAdded', file)
+        });
+        socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);
+
+        if(em.exists(data.name)){
+          var event = em.getByKey(data.name);
+          event.status = 'open';
+          event.comments.push({userName:'hackify', comment:'room opened by Host', date:new Date()});
+          em.store(event);
+        };
+
+        //I wanted to give the host some positive feedback, also helps testing
+        socket.emit('roomCreated');
+        winston.info('room created', { name:data.name, hostVersion: data.hostVersion, hostAddr: socket.handshake.address });
+      }else{
+        winston.info('refusing room create (moderator pass mismatch with event)', {hostVersion:hostVersion, minHostVersion: config.minHostVersion});
+        socket.emit('error', 'cannot create room, moderator pass does not match associated event.  reset pass at http://hackify.com/events/' + data.name);
       }
-
-      //reset the other participants (if any) 
-      socket.broadcast.to(data.name).emit('newUser', {userId:'host', isYou:false});
-      socket.broadcast.to(data.name).emit('newChatMessage', 'host has re-entered the room', 'hackify');
-      socket.broadcast.to(data.name).emit('resetHostData');
-      rooms[data.name].files.forEach(function(file){
-        socket.broadcast.to(data.name).emit('fileAdded', file)
-      });
-      socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);
-
-      //I wanted to give the host some positive feedback, also helps testing
-      socket.emit('roomCreated');
-      winston.info('room created', { name:data.name, hostVersion: data.hostVersion, hostAddr: socket.handshake.address });
     }else{
       winston.info('refusing room create (version check failed)', {hostVersion:hostVersion, minHostVersion: config.minHostVersion});
       socket.emit('error', 'cannot create room, minimum host version is ' + config.minHostVersion + ' your hackify version is ' + hostVersion + '. please update your hackify module (npm install -g hackify)')
@@ -114,7 +132,7 @@ module.exports.listen = function(io, socket, rooms){
       winston.info('user joined room', {userId: userId, room:data.room, clientAddr: socket.handshake.address});
       
       //make user the moderator if they are the first joiner
-      if(io.sockets.clients(data.room).length === 1){
+      if(!em.exists(data.room) && io.sockets.clients(data.room).length === 2){
         socketRoles.doRoleChange(io, data.room, userId, 'moderator');
       }
     }else{
@@ -143,7 +161,16 @@ module.exports.listen = function(io, socket, rooms){
 
           //check if room is empty
           if(io.sockets.clients(room).length===0 && !rooms[room].permanent){
+
             delete rooms[room];
+
+            if(em.exists(room)){
+              var event = em.getByKey(room);
+              event.status = 'closed';
+              event.comments.push({userName:'hackify', comment:'room closed', date:new Date()});
+              em.store(event);
+            };
+
             winston.info('room closed', {room:room});
           }
         })

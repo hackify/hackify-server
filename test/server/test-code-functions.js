@@ -10,7 +10,7 @@ var options ={
   'force new connection': true
 };
 
-describe("Chat Functions",function(){
+describe("Code Functions",function(){
   var hostClient;
 
   this.timeout(20000);
@@ -46,9 +46,9 @@ describe("Chat Functions",function(){
       
       //need to have access permissions to mess about with data so get moderator role
       user1Client.emit('changeUserId', 'bob');
-      user1Client.emit('requestChangeRole', {userId:'bob', newRole:'moderator', pass:'1234'});
 
       user1Client.on('userRoleChanged', function(userId, role){
+        role.should.equal('moderator');
         user1Client.emit('refreshData', 'this is the body', true);
 
         user1Client.on('refreshData', function(data){
@@ -63,6 +63,7 @@ describe("Chat Functions",function(){
             data.should.equal('this is the body');
             user1Client.disconnect();
             user2Client.disconnect();
+            
             done();
           });
         });
@@ -76,7 +77,6 @@ describe("Chat Functions",function(){
 
     user1Client.on('connect', function(data){
       user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
-
       
       user1Client.on('refreshData', function(data){
         refreshCounter++;
@@ -84,6 +84,7 @@ describe("Chat Functions",function(){
           data.should.equal('this is the body');
           user1Client.disconnect();
           user2Client.disconnect();
+
           done();
         }
       });
@@ -117,6 +118,7 @@ describe("Chat Functions",function(){
         op.origin.should.equal('+input');
         user1Client.disconnect();
         user2Client.disconnect();
+
         done();
       });
 
