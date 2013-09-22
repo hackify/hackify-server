@@ -3,7 +3,7 @@
   "name": "hackify-server",
   "homepage": "http://hackify.org",
   "main": "server.js",
-  "version": "0.1.0-25",
+  "version": "0.1.0-26",
   "engines": {
     "node": ">= 0.8.12"
   },
@@ -22,7 +22,7 @@
   "devDependencies": {
     "should": "1.2.2",
     "socket.io-client": "0.9.16",
-    supertest": "0.7.1"
+    "supertest": "0.7.1"
   },
   "subdomain": "mdausmann.hackify",
   "domains": [
