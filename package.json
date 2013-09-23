@@ -17,7 +17,8 @@
     "winston": "0.7.2",
     "async": "0.2.9",
     "mime": "1.2.x",
-    "universal-analytics": "0.2.3"
+    "universal-analytics": "0.2.3",
+    "redis": "0.8.4"
   },
   "devDependencies": {
     "should": "1.2.2",
