@@ -11,8 +11,9 @@
   ],
   "dependencies": {
     "jquery":"latest",
-    "bootstrap-css":"latest",
+    "bootstrap-css":"2.3.2",
     "angular": "latest",
-    "angular-socket-io": "latest"
+    "angular-socket-io": "latest",
+    "codemirror": "latest"
   }
 }
