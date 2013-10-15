@@ -5,7 +5,8 @@ var vcompare = require('../lib/vcompare'),
     mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev')),
     socketRoles = require('./socket_roles'),
-    em = require('../lib/events_manager_' + ((config.redisHost)?'redis' :'hash'));
+    em = require('../lib/events_manager_' + ((config.redisHost)?'redis' :'hash')),
+    ofm = require('../lib/openfiles_manager_hash');
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
@@ -88,6 +89,9 @@ module.exports.listen = function(io, socket, rooms){
       socket.emit('refreshData', roomState.body);
       socket.emit('roomReadOnly', roomState.readOnly);
       socket.emit('roomAuthMap', roomState.authMap);
+      ofm.getList(function(err, res){
+        socket.emit('openFiles', res);
+      });
 
       //tell this socket about all of the users (including itself)
       var clients = io.sockets.clients(data.room);

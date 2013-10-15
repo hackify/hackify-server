@@ -1,7 +1,7 @@
 var should = require('should');
 var config = require('./config_mocha');
 var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
-var em = require('../../lib/events_manager_redis');
+// var em = require('../../lib/events_manager_redis');
 
 describe("Events Manager Test",function(){
   beforeEach(function(done){
@@ -14,48 +14,48 @@ describe("Events Manager Test",function(){
     done();
   });
 
-  it('Should create a new event', function(done){
-    var startTime = new Date();
+  // it('Should create a new event', function(done){
+  //   var startTime = new Date();
 
-    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+  //   var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
 
-    newEvent.key.should.equal('testEvent');
-    newEvent.description.should.equal('This is a test');
-    newEvent.startDateTime.should.equal(startTime);
-    newEvent.moderatorPass.should.equal('mod123');
-    newEvent.status.should.equal('closed');
+  //   newEvent.key.should.equal('testEvent');
+  //   newEvent.description.should.equal('This is a test');
+  //   newEvent.startDateTime.should.equal(startTime);
+  //   newEvent.moderatorPass.should.equal('mod123');
+  //   newEvent.status.should.equal('closed');
     
-    done(); 
-  });//it should
+  //   done(); 
+  // });//it should
 
-  it('Should create a new event with comments', function(done){
-    var startTime = new Date();
+  // it('Should create a new event with comments', function(done){
+  //   var startTime = new Date();
 
-    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js', [{userName:"bob", comment:"this is my first comment"},{userName:"sally", comment:"I disagree with bob"}]);
+  //   var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js', [{userName:"bob", comment:"this is my first comment"},{userName:"sally", comment:"I disagree with bob"}]);
 
-    newEvent.key.should.equal('testEvent');
-    newEvent.comments.length.should.equal(2);
-    newEvent.comments[0].userName.should.equal('bob');
+  //   newEvent.key.should.equal('testEvent');
+  //   newEvent.comments.length.should.equal(2);
+  //   newEvent.comments[0].userName.should.equal('bob');
     
-    done(); 
-  });//it should
+  //   done(); 
+  // });//it should
 
-  it('Should store and retrieve an event', function(done){
-    var startTime = new Date();
-    var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
-    em.store(newEvent, function(err, res){
-        // console.log('err:%s res:%s', err, res);
-        em.getByKey('testEvent', function(retrievedEvent){          
-            retrievedEvent.key.should.equal('testEvent');
-            retrievedEvent.description.should.equal('This is a test');
-            retrievedEvent.startDateTime.getTime().should.equal(startTime.getTime());
-            retrievedEvent.moderatorPass.should.equal('mod123');
-            retrievedEvent.status.should.equal('closed');
+  // it('Should store and retrieve an event', function(done){
+  //   var startTime = new Date();
+  //   var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
+  //   em.store(newEvent, function(err, res){
+  //       // console.log('err:%s res:%s', err, res);
+  //       em.getByKey('testEvent', function(retrievedEvent){          
+  //           retrievedEvent.key.should.equal('testEvent');
+  //           retrievedEvent.description.should.equal('This is a test');
+  //           retrievedEvent.startDateTime.getTime().should.equal(startTime.getTime());
+  //           retrievedEvent.moderatorPass.should.equal('mod123');
+  //           retrievedEvent.status.should.equal('closed');
             
-            done();         
-        });
-    });
-  });//it should
+  //           done();         
+  //       });
+  //   });
+  // });//it should
 
   // it('Should retrieve all events', function(done){
   //   var startTime = new Date();

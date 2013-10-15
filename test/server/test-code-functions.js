@@ -30,12 +30,56 @@ describe("Code Functions",function(){
         done();
       })
     });
+
+    //set up a mock for the host behaviour
+    var fileAContent = "this is file a";
+    var fileBContent = "this is file b";
+    hostClient.on('changeCurrentFile', function(newFile){
+      switch(newFile){
+        case "a.txt":
+        hostClient.emit('refreshData', fileAContent, true);
+        break;
+        
+        case "b.txt":
+        hostClient.emit('refreshData', fileBContent, true);
+        break;
+        
+        case "unhosted.txt":
+        hostClient.emit('newChatMessage', 'changeCurrentFile for ' + newFile + ' refused... file is not hosted'); 
+        break;
+        
+        case "readerror.txt":
+        hostClient.emit('newChatMessage', "error reading file " + newFile + ' ' + err);
+        break;
+      }
+    });
+
+    hostClient.on('saveCurrentFile', function(data){
+      if(data.file=="a.txt"){
+        fileAContent = data.body;
+        hostClient.emit('newChatMessage', "file save succeeded for file " + data.file);
+      }
+
+      if(data.file=="b.txt"){
+        fileBContent = data.body;
+        hostClient.emit('newChatMessage', "file save succeeded for file " + data.file);
+      }
+
+      //unmocked responses
+      //hostClient.emit('newChatMessage', 'file save for ' + data.file + ' refused... room is read only');
+      //hostClient.emit('newChatMessage', 'file save for ' + data.file + ' refused... file is not hosted');      
+    });  
+
+
+
   });
 
   afterEach(function(done){
     hostClient.disconnect();
     done();
   });
+
+    
 
   it('Should broadcast refreshData for new clients', function(done){
     var user1Client = io.connect(socketURL, options);
@@ -133,6 +177,45 @@ describe("Code Functions",function(){
 
           user2Client.on('userRoleChanged', function(userId, role){
             user2Client.emit('changeData', {origin:'+input'});
+          });
+        });
+      });
+    });
+  });//it should
+
+  it('Should hold changes between file switches', function(done){
+    var user1Client = io.connect(socketURL, options);
+    var user2Client;refreshCounter = 0;
+
+    user1Client.on('connect', function(data){
+      user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
+
+      user1Client.on('refreshData', function(body){
+        refreshCounter++;
+        if(refreshCounter==2){
+          body.should.equal('this is file a changed');
+          user1Client.disconnect();
+          user2Client.disconnect();
+          done();          
+        }
+        console.log('refreshCounter:%s body:%s', refreshCounter, body);
+      });
+
+      user2Client = io.connect(socketURL, options);
+
+      user2Client.on('connect', function(data){
+        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+
+        user2Client.on('roomJoined', function(){
+          user2Client.emit('changeUserId', 'charlene');
+          user2Client.emit('requestChangeRole', {userId:'charlene', newRole:'moderator', pass:'1234'});
+
+          user2Client.on('userRoleChanged', function(userId, role){
+            user2Client.emit('changeCurrentFile', "a.txt");
+            user2Client.emit('refreshData', 'this is file a changed', false);
+            user2Client.emit('changeCurrentFile', "b.txt");
+            user2Client.emit('refreshData', 'this is file b changed', false);
+            user2Client.emit('changeCurrentFile', "a.txt");//finally, flip back to a.txt. it should maintiain the changes and not pull from host again
           });
         });
       });

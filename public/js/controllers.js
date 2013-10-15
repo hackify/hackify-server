@@ -8,6 +8,7 @@ angular.module('myApp.controllers', []).
 
     $scope.currentFile = "no file";
     $scope.files = [];
+    $scope.openFiles = [];
     $scope.body = "";
     $scope.messages = [];
     $scope.users = [];
@@ -48,6 +49,10 @@ angular.module('myApp.controllers', []).
 
     socket.on('fileChanged', function(file){
       //TODO - maybe do something with times... mebe push the last updated time from host and use on UI to 'red' the recently altered.. or order.. not sure
+    });
+
+    socket.on('openFiles', function(files){
+      $scope.openFiles = files;
     });
 
     //server --> client (server sends fresh data for active file)
@@ -128,8 +133,16 @@ angular.module('myApp.controllers', []).
       socket.emit('changeCurrentFile', file);
     };
 
+    $scope.requestCloseFile = function(file){
+      socket.emit('closeFile', file)
+    };
+
     $scope.requestSaveCurrentFile = function(){
       socket.emit('saveCurrentFile');
+    };    
+
+    $scope.requestReloadCurrentFile = function(){
+      socket.emit('reloadCurrentFile');
     };    
 
     $scope.newChatMessage = function(){

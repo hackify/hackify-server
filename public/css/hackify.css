@@ -22,3 +22,8 @@ body {
 #files li {float: left; padding: 3px;}
 
 .chat-messages {overflow-y:   scroll;}  
+
+.nav-tabs > li .close {
+    margin: -2px 0 0 10px;
+    font-size: 18px;
+}

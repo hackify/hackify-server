@@ -12,4 +12,9 @@ angular.module('myApp.filters', []).
         return function (items) {
             return items.slice().reverse();
         };
+    }).
+    filter('namefrompath', function () {
+        return function (fullPath) {
+            return fullPath.replace(/^.*[\\\/]/, '');
+        };
     });

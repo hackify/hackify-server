@@ -1,12 +1,32 @@
 var socketAuth = require('../lib/socket_auth'),
-    mime = require('mime');
+    mime = require('mime'),
+    ofm = require('../lib/openfiles_manager_hash');
 
 module.exports.listen = function(io, socket, rooms){
   //client --> server --> client/host (client requests a change to the file which is passed on to the host so it can load the file and the clients so they can change the file heading)
-  socket.on('changeCurrentFile', function(newFile){
+  socket.on('changeCurrentFile', function(newFile){  
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
+      var oldBody = rooms[room].body,
+          oldFileName = rooms[room].currentFile;
+
       rooms[room].currentFile = newFile;
       io.sockets.in(room).emit('changeCurrentFile', newFile, mime.lookup(newFile));
+
+      //If the requested file is available in open files, broadcast it directly otherwise wait for the host to refresh it
+      ofm.exists(newFile, function(err, res){
+        if(res){
+          ofm.get(newFile, function(err, savedBody){
+            rooms[room].body = savedBody;
+            io.sockets.in(room).emit('refreshData', savedBody);
+          })
+        }
+      })
+
+      //Store the replaced file back into open files so changes are not lost
+      //'no file' is the default starting filename dummy
+      if(oldFileName!="no file"){
+        ofm.store(oldBody, oldFileName, null, function(err, res){});
+      }
     });    
   });
 
@@ -14,7 +34,28 @@ module.exports.listen = function(io, socket, rooms){
   socket.on('saveCurrentFile', function(){
     socketAuth.checkedOperation(rooms, socket, 'saveCurrentFile', function(room, userId){
       if(rooms[room].hostSocket){
-        rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body})        
+        rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body});
+
+        //mark file as clean and broadcast
+        ofm.setIsDirty(rooms[room].currentFile, false, function(err,res){
+          if(res){
+            ofm.getList(function(err, res){
+              io.sockets.in(room).emit('openFiles', res);
+            })
+          }
+        });      
+      }
+    });    
+  });
+
+  socket.on('reloadCurrentFile', function(){
+    socketAuth.checkedOperation(rooms, socket, 'saveCurrentFile', function(room, userId){
+      if(rooms[room].hostSocket){
+        ofm.remove(rooms[room].currentFile, function(err,res){
+          if(res){
+            rooms[room].hostSocket.emit('changeCurrentFile', rooms[room].currentFile, mime.lookup(rooms[room].currentFile));
+          }
+        });
       }
     });    
   });
@@ -43,6 +84,18 @@ module.exports.listen = function(io, socket, rooms){
       if(rooms[room].files.indexOf(file) > -1){
         io.sockets.in(room).emit('fileChanged', file);          
       }
+    });
+  });
+
+  socket.on('closeFile', function (file) {
+    socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
+      ofm.remove(file, function(err,res){
+        if(res){
+          ofm.getList(function(err, res){
+            io.sockets.in(room).emit('openFiles', res);
+          })
+        }
+      });
     });
   });  
 
