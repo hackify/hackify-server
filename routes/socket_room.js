@@ -5,8 +5,8 @@ var vcompare = require('../lib/vcompare'),
     mime = require('mime'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev')),
     socketRoles = require('./socket_roles'),
-    em = require('../lib/events_manager_' + ((config.redisHost)?'redis' :'hash')),
-    ofm = require('../lib/openfiles_manager_hash');
+    em = require('../lib/events_manager_' + ((config.useRedisForEvents)?'redis' :'hash')),
+    ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
@@ -89,7 +89,7 @@ module.exports.listen = function(io, socket, rooms){
       socket.emit('refreshData', roomState.body);
       socket.emit('roomReadOnly', roomState.readOnly);
       socket.emit('roomAuthMap', roomState.authMap);
-      ofm.getList(function(err, res){
+      ofm.getList(data.room, function(err, res){
         socket.emit('openFiles', res);
       });
 
@@ -167,6 +167,8 @@ module.exports.listen = function(io, socket, rooms){
           if(io.sockets.clients(room).length===0 && !rooms[room].permanent){
 
             delete rooms[room];
+
+            ofm.reset(room);
 
             if(em.exists(room)){
               var event = em.getByKey(room);

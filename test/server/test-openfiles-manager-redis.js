@@ -1,11 +1,11 @@
 var should = require('should');
 var config = require('./config_mocha');
 var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
-var ofm = require('../../lib/openfiles_manager_hash');
+var ofm = require('../../lib/openfiles_manager_redis');
 
 var testRoom = "testroom";
 
-describe("Open Files Manager Hash Test",function(){
+describe("Open Files Manager Redis Test",function(){
   beforeEach(function(done){
     ofm.reset(testRoom, function(err, res){
         done();

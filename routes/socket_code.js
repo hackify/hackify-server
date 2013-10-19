@@ -1,5 +1,5 @@
 var socketAuth = require('../lib/socket_auth'),
-    ofm = require('../lib/openfiles_manager_hash');
+    ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server (send hosted file data to the server for collaborative editing)
@@ -14,7 +14,7 @@ module.exports.listen = function(io, socket, rooms){
     socketAuth.checkedOperation(rooms, socket, 'editData', function(room, userId){
       //If the refresh is coming from the host, and is already in the open files, ignore it i.e. open files is the source of truth for this file. TODO - handle change to the host file for open files
       if(socket===rooms[room].hostSocket){
-        ofm.exists(rooms[room].currentFile, function(err,res){
+        ofm.exists(room, rooms[room].currentFile, function(err,res){
           if(!res){
             rooms[room].body = body;
             if(broadcast){
@@ -22,7 +22,7 @@ module.exports.listen = function(io, socket, rooms){
             }
 
             //all files chosen from the client are automatically 'open' i.e. no 'preview' functionality ah-la sublime
-            ofm.store(body, rooms[room].currentFile, false, function(err,res){
+            ofm.store(room, rooms[room].currentFile, body, false, function(err,res){
               socket.broadcast.to(room).emit('openFiles', res);
             });
           }
@@ -44,10 +44,10 @@ module.exports.listen = function(io, socket, rooms){
 
         //mark file as dirty and broadcast
         console.log('setting isdirty to true for %s', rooms[room].currentFile);
-        ofm.setIsDirty(rooms[room].currentFile, true, function(err,res){
+        ofm.setIsDirty(room, rooms[room].currentFile, true, function(err,res){
           console.log('back from isDirty res:%s', res);
           if(res){
-            ofm.getList(function(err, res){
+            ofm.getList(room, function(err, res){
               io.sockets.in(room).emit('openFiles', res);
             });
           }

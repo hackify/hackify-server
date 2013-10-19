@@ -1,4 +1,4 @@
-var em = require('../lib/events_manager_' + ((config.redisHost)?'redis' :'hash')),
+var em = require('../lib/events_manager_' + ((config.useRedisForEvents)?'redis' :'hash')),
     extend = require('util')._extend;
 
 exports.getAllEvents = function (req, res) {

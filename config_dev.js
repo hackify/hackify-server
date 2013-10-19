@@ -14,3 +14,8 @@ exports.gitHubClientSecret = '69d0368eac9e5dc7be3cecf7f3fe53c172139664';
 exports.gaTrackingId = null;
 
 exports.testRoomName = 'mochatest';
+
+exports.useRedisForOpenFiles = false;
+exports.useRedisForEvents = false;
+exports.redisHost = '127.0.0.1';
+exports.redisPort = 6379;

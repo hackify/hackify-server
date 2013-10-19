@@ -1,6 +1,6 @@
 var socketAuth = require('../lib/socket_auth'),
     mime = require('mime'),
-    ofm = require('../lib/openfiles_manager_hash');
+    ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket, rooms){
   //client --> server --> client/host (client requests a change to the file which is passed on to the host so it can load the file and the clients so they can change the file heading)
@@ -13,9 +13,9 @@ module.exports.listen = function(io, socket, rooms){
       io.sockets.in(room).emit('changeCurrentFile', newFile, mime.lookup(newFile));
 
       //If the requested file is available in open files, broadcast it directly otherwise wait for the host to refresh it
-      ofm.exists(newFile, function(err, res){
+      ofm.exists(room, newFile, function(err, res){
         if(res){
-          ofm.get(newFile, function(err, savedBody){
+          ofm.get(room, newFile, function(err, savedBody){
             rooms[room].body = savedBody;
             io.sockets.in(room).emit('refreshData', savedBody);
           })
@@ -25,7 +25,7 @@ module.exports.listen = function(io, socket, rooms){
       //Store the replaced file back into open files so changes are not lost
       //'no file' is the default starting filename dummy
       if(oldFileName!="no file"){
-        ofm.store(oldBody, oldFileName, null, function(err, res){});
+        ofm.store(room, oldFileName, oldBody, null, function(err, res){});
       }
     });    
   });
@@ -37,9 +37,9 @@ module.exports.listen = function(io, socket, rooms){
         rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body});
 
         //mark file as clean and broadcast
-        ofm.setIsDirty(rooms[room].currentFile, false, function(err,res){
+        ofm.setIsDirty(room, rooms[room].currentFile, false, function(err,res){
           if(res){
-            ofm.getList(function(err, res){
+            ofm.getList(room, function(err, res){
               io.sockets.in(room).emit('openFiles', res);
             })
           }
@@ -51,7 +51,7 @@ module.exports.listen = function(io, socket, rooms){
   socket.on('reloadCurrentFile', function(){
     socketAuth.checkedOperation(rooms, socket, 'saveCurrentFile', function(room, userId){
       if(rooms[room].hostSocket){
-        ofm.remove(rooms[room].currentFile, function(err,res){
+        ofm.remove(room, rooms[room].currentFile, function(err,res){
           if(res){
             rooms[room].hostSocket.emit('changeCurrentFile', rooms[room].currentFile, mime.lookup(rooms[room].currentFile));
           }
@@ -89,9 +89,9 @@ module.exports.listen = function(io, socket, rooms){
 
   socket.on('closeFile', function (file) {
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
-      ofm.remove(file, function(err,res){
+      ofm.remove(room, file, function(err,res){
         if(res){
-          ofm.getList(function(err, res){
+          ofm.getList(room, function(err, res){
             io.sockets.in(room).emit('openFiles', res);
           })
         }
