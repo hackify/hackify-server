@@ -18,15 +18,15 @@ describe( 'controller test', function() {
   });
 
   it('should accept changeCurrentFile file="/myfiles/test.js"', function(){
-    socketMock.emit('changeCurrentFile', '/myfiles/test.js', 'text/javascript');
+    socketMock.receive('changeCurrentFile', '/myfiles/test.js', 'text/javascript');
     expect(scope.currentFile).toBe('/myfiles/test.js');
     expect(scope.editorOptions.mode).toBe('text/javascript');
   });
 
   it('should accept roomReadOnly', function(){
-    socketMock.emit('roomReadOnly', true);
+    socketMock.receive('roomReadOnly', true);
     expect(scope.readOnly).toBe(true);
-    socketMock.emit('roomReadOnly', false);
+    socketMock.receive('roomReadOnly', false);
     expect(scope.readOnly).toBe(false);
   });
 
@@ -37,40 +37,44 @@ describe( 'controller test', function() {
       default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
     };
 
-    socketMock.emit('roomAuthMap', testMap);
+    socketMock.receive('roomAuthMap', testMap);
     expect(scope.authMap).toBe(testMap);
   });
 
   it('should accept fileAdded and add file to files list', function(){
-    socketMock.emit('fileAdded', '/my/test/file.js');
+    socketMock.receive('fileAdded', '/my/test/file.js');
     expect(scope.files.length).toBe(1);
     expect(scope.files[0]).toBe('/my/test/file.js');
   });
 
   it('should accept fileDeleted and remove file from files list', function(){
-    socketMock.emit('fileAdded', '/my/test/file.js');
-    socketMock.emit('fileAdded', '/my/other/test/stuff.css');
-    socketMock.emit('fileDeleted', '/my/test/file.js');
+    socketMock.receive('fileAdded', '/my/test/file.js');
+    socketMock.receive('fileAdded', '/my/other/test/stuff.css');
+    socketMock.receive('fileDeleted', '/my/test/file.js');
     expect(scope.files.length).toBe(1);
     expect(scope.files[0]).toBe('/my/other/test/stuff.css');
   });
 
   it('should accept refreshData', function(){
-    socketMock.emit('refreshData', 'This is the new file data.');
-    expect(scope.body).toBe('This is the new file data.');
+    socketMock.receive('changeCurrentFile', 'a.txt');
+    socketMock.receive('refreshData', 'This is the new file data.');
+
+    expect(scope.bodyStore['a.txt'].body).toBe('This is the new file data.');
+    expect(scope.bodyStore['a.txt'].isDirty).toBe(false);
   });
 
   it('should accept changeData', function(){
+    socketMock.receive('changeCurrentFile', 'a.txt');
     var testOp = {origin:'+input'};
-    socketMock.emit('changeData', testOp);
+    socketMock.receive('changeData', testOp);
     expect(scope.newChange).toBe(testOp);
   });
 
   it('should accept resetHostData and reset all host data', function(){
-    socketMock.emit('resetHostData');
+    socketMock.receive('resetHostData');
     expect(scope.currentFile).toBe('no file');
     expect(scope.files.length).toBe(0);
-    expect(scope.body).toBe('');
+    expect(Object.keys(scope.bodyStore).length).toBe(0);
     expect(scope.warning).toBe('');
   });
 
@@ -80,11 +84,11 @@ describe( 'controller test', function() {
     runs(function() {
       flag = false;
 
-      socketMock.emit('newChatMessage', "Hi my name is bob", 'bob');
-      socketMock.emit('newChatMessage', "pleased to meet you, I'm Cindy", 'Cindy Crawford');
+      socketMock.receive('newChatMessage', "Hi my name is bob", 'bob');
+      socketMock.receive('newChatMessage', "pleased to meet you, I'm Cindy", 'Cindy Crawford');
 
       setTimeout(function() {
-        socketMock.emit('newChatMessage', "I'm like.. a Model!", 'Cindy Crawford');
+        socketMock.receive('newChatMessage', "I'm like.. a Model!", 'Cindy Crawford');
         flag = true;
       }, 100);
     });
@@ -112,14 +116,14 @@ describe( 'controller test', function() {
     };
 
     var newUser = {userId:'bob', isYou:false, userInfo:testUserInfo, role:'default'}
-    socketMock.emit('newUser', newUser);
+    socketMock.receive('newUser', newUser);
     expect(scope.users.length).toBe(1);
     expect(scope.users[0]).toBe(newUser);
 
   });
 
   it('should accept newUser that is you and set current user and read only', function(){
-    socketMock.emit('roomReadOnly', false);
+    socketMock.receive('roomReadOnly', false);
 
     var testMap = {
       moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
@@ -127,7 +131,7 @@ describe( 'controller test', function() {
       default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
     };
 
-    socketMock.emit('roomAuthMap', testMap);
+    socketMock.receive('roomAuthMap', testMap);
 
     var testUserInfo = {
       "provider":'github',
@@ -140,29 +144,29 @@ describe( 'controller test', function() {
     };
 
     var newUser = {userId:'bob', isYou:true, userInfo:testUserInfo, role:'default'}
-    socketMock.emit('newUser', newUser);
+    socketMock.receive('newUser', newUser);
     expect(scope.currentUser).toBe(newUser);
     expect(scope.readOnly).toBe(false);
     expect(scope.editorOptions.readOnly).toBe(false);
   });
 
   it('should accept exitingUser and remove user from user list', function(){
-    socketMock.emit('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('newUser', {userId:'tara', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('newUser', {userId:'will', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('exitingUser', 'tara');
+    socketMock.receive('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('newUser', {userId:'tara', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('newUser', {userId:'will', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('exitingUser', 'tara');
     expect(scope.users.length).toBe(2);
     expect(scope.users[1].userId).toBe('will');
   });
 
   it('should accept userIdChanged and change the users name', function(){
-    socketMock.emit('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('userIdChanged', 'bob', 'tara');
+    socketMock.receive('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('userIdChanged', 'bob', 'tara');
     expect(scope.users[0].userId).toBe('tara');
   });
 
   it('should accept userRoleChanged and change the users name', function(){
-    socketMock.emit('roomReadOnly', false);
+    socketMock.receive('roomReadOnly', false);
 
     var testMap = {
       moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
@@ -170,17 +174,17 @@ describe( 'controller test', function() {
       default:{'editData':false, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': false, 'changeCurrentFile':false, 'changeRole':false}
     };
 
-    socketMock.emit('roomAuthMap', testMap);
+    socketMock.receive('roomAuthMap', testMap);
 
-    socketMock.emit('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('userRoleChanged', 'bob', 'editor');
+    socketMock.receive('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('userRoleChanged', 'bob', 'editor');
     expect(scope.users[0].role).toBe('editor');
     expect(scope.editorOptions.readOnly).toBe(false);
   });
 
   it('should accept requestedRole and change the users requested role', function(){
-    socketMock.emit('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
-    socketMock.emit('requestedRole', 'bob', 'editor');
+    socketMock.receive('newUser', {userId:'bob', isYou:true, userInfo:null, role:'default'});
+    socketMock.receive('requestedRole', 'bob', 'editor');
     expect(scope.users[0].requestedRole).toBe('editor');
   });
 
@@ -191,6 +195,9 @@ describe( 'controller test', function() {
   });
 
   it('should emit saveCurrentFile when requestSaveCurrentFile is called', function(){
+    socketMock.receive('changeCurrentFile', 'a.txt');
+    socketMock.receive('refreshData', 'This is the new file data.');
+
     scope.requestSaveCurrentFile();
     expect(socketMock.emits['saveCurrentFile'].length).toBe(1);
   });
@@ -218,8 +225,8 @@ describe( 'controller test', function() {
 
   it('should emit grantChangeRole if the user has a requested role and grantRequestedRole is called', function(){
     var newUser = {userId:'bob', isYou:false, userInfo:null, role:'default'}
-    socketMock.emit('newUser', newUser);
-    socketMock.emit('requestedRole', 'bob', 'editor');
+    socketMock.receive('newUser', newUser);
+    socketMock.receive('requestedRole', 'bob', 'editor');
 
     scope.grantRequestedRole('bob');
 
@@ -230,7 +237,7 @@ describe( 'controller test', function() {
 
   it('should emit requestChangeRole when requestChangeRole is called', function(){
     var newUser = {userId:'bob', isYou:false, userInfo:null, role:'default'}
-    socketMock.emit('newUser', newUser);
+    socketMock.receive('newUser', newUser);
 
     scope.requestChangeRole('bob', 'editor', 'xxx123');
 
@@ -241,9 +248,10 @@ describe( 'controller test', function() {
   });
 
   it('should emit changeData and refreshData when onEditorChange is called and scope.readOnly is false', function(){
-    scope.readOnly = false;
-    scope.body = "this is the text";
-    var testOp = {op:'op'};
+    scope.readOnly = false;    
+    socketMock.receive('changeCurrentFile', 'a.txt');
+    socketMock.receive('refreshData', 'this is the text');
+    var testOp = {op:'op', origin:'+input'};
 
     scope.onEditorChange(0, testOp);
 
@@ -252,7 +260,45 @@ describe( 'controller test', function() {
     expect(socketMock.emits['refreshData'][0][1]).toBe(false);
   });
 
+  it('should persist multiple open files', function(){
+    scope.readOnly = false;    
+    socketMock.receive('changeCurrentFile', 'a.txt');
+    socketMock.receive('refreshData', 'this is a.');
 
+    socketMock.receive('changeCurrentFile', 'b.txt');
+    socketMock.receive('refreshData', 'this is b.');
+
+    expect(scope.bodyStore['a.txt'].body).toBe('this is a.');
+    expect(scope.bodyStore['a.txt'].isDirty).toBe(false);
+
+    expect(scope.bodyStore['b.txt'].body).toBe('this is b.');
+    expect(scope.bodyStore['b.txt'].isDirty).toBe(false);
+
+  });
+
+  it('should accept a close file and remove from local memory', function(){
+    scope.readOnly = false;    
+    socketMock.receive('changeCurrentFile', 'a.txt');
+    socketMock.receive('refreshData', 'this is a.');
+
+    socketMock.receive('changeCurrentFile', 'b.txt');
+    socketMock.receive('refreshData', 'this is b.');
+
+    socketMock.receive('closeFile', 'a.txt');
+
+    expect(scope.bodyStore.hasOwnProperty('a.txt')).toBe(false);
+    expect(Object.keys(scope.bodyStore).length).toBe(1);
+  });
+
+  it('should accept a sync open file', function(){
+    var testOpenFile = {fileName:'a.txt', body:'this is a.', isDirty: false};
+
+    socketMock.receive('syncOpenFile', testOpenFile);
+
+    expect(scope.bodyStore['a.txt'].body).toBe('this is a.');
+    expect(scope.bodyStore['a.txt'].isDirty).toBe(false);
+
+  });
 
 });
 
@@ -265,19 +311,24 @@ var sockMock = function($rootScope){
   this.events = {};
   this.emits = {};
 
-  // Receive Events
+  // intercept 'on' calls and capture the callbacks
   this.on = function(eventName, callback){
     if(!this.events[eventName]) this.events[eventName] = [];
     this.events[eventName].push(callback);
-  }
+  };
 
-  // Send Events
+  // intercept 'emit' calls from the client and record them to assert against in the test
   this.emit = function(eventName){
     var args = Array.prototype.slice.call(arguments, 1);
 
     if(!this.emits[eventName])
       this.emits[eventName] = [];
     this.emits[eventName].push(args);
+  };
+
+  //simulate an inbound message to the socket from the server (only called from the test)
+  this.receive = function(eventName){
+    var args = Array.prototype.slice.call(arguments, 1);
 
     if(this.events[eventName]){
       angular.forEach(this.events[eventName], function(callback){
@@ -286,7 +337,8 @@ var sockMock = function($rootScope){
         });
       });
     };
-  }
+  };
+
 };
 
 

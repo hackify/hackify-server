@@ -6,45 +6,22 @@ module.exports.listen = function(io, socket, rooms){
   //client --> server --> client/host (client requests a change to the file which is passed on to the host so it can load the file and the clients so they can change the file heading)
   socket.on('changeCurrentFile', function(newFile){  
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
-      var oldBody = rooms[room].body,
-          oldFileName = rooms[room].currentFile;
-
       rooms[room].currentFile = newFile;
       io.sockets.in(room).emit('changeCurrentFile', newFile, mime.lookup(newFile));
-
-      //If the requested file is available in open files, broadcast it directly otherwise wait for the host to refresh it
-      ofm.exists(room, newFile, function(err, res){
-        if(res){
-          ofm.get(room, newFile, function(err, savedBody){
-            rooms[room].body = savedBody;
-            io.sockets.in(room).emit('refreshData', savedBody);
-          })
-        }
-      })
-
-      //Store the replaced file back into open files so changes are not lost
-      //'no file' is the default starting filename dummy
-      if(oldFileName!="no file"){
-        ofm.store(room, oldFileName, oldBody, null, function(err, res){});
-      }
     });    
   });
 
   //client --> server --> Host (Client requests a file save, server tells the host to do it)
   socket.on('saveCurrentFile', function(){
     socketAuth.checkedOperation(rooms, socket, 'saveCurrentFile', function(room, userId){
-      if(rooms[room].hostSocket){
-        rooms[room].hostSocket.emit('saveCurrentFile', {file:rooms[room].currentFile, body:rooms[room].body});
-
-        //mark file as clean and broadcast
-        ofm.setIsDirty(room, rooms[room].currentFile, false, function(err,res){
-          if(res){
-            ofm.getList(room, function(err, res){
-              io.sockets.in(room).emit('openFiles', res);
-            })
-          }
-        });      
-      }
+        ofm.get(room, rooms[room].currentFile, function(err, res){
+          //broadcast save to everybody.  host will use it to actually save, for other clients, acts as a sync.  should probably get a response
+          //from the host first as this is a bit hopefull (what if host fails to save?)
+          io.sockets.in(room).emit('saveCurrentFile', {file:rooms[room].currentFile, body:res});
+        });
+        
+        //mark file as clean
+        ofm.setIsDirty(room, rooms[room].currentFile, false, function(err,res){});      
     });    
   });
 
@@ -89,13 +66,8 @@ module.exports.listen = function(io, socket, rooms){
 
   socket.on('closeFile', function (file) {
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
-      ofm.remove(room, file, function(err,res){
-        if(res){
-          ofm.getList(room, function(err, res){
-            io.sockets.in(room).emit('openFiles', res);
-          })
-        }
-      });
+      io.sockets.in(room).emit('closeFile', file);
+      ofm.remove(room, file, function(err,res){});
     });
   });  
 

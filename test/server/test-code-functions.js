@@ -81,7 +81,7 @@ describe("Code Functions",function(){
 
     
 
-  it('Should broadcast refreshData for new clients', function(done){
+  it('Should sync open files for new clients', function(done){
     var user1Client = io.connect(socketURL, options);
     var user2Client;
 
@@ -93,18 +93,20 @@ describe("Code Functions",function(){
 
       user1Client.on('userRoleChanged', function(userId, role){
         role.should.equal('moderator');
-        user1Client.emit('refreshData', 'this is the body', true);
+        user1Client.emit('changeCurrentFile', 'a.txt');
 
         user1Client.on('refreshData', function(data){
-          data.should.equal('this is the body');
+          data.should.equal('this is file a');
         });
 
         user2Client = io.connect(socketURL, options);
 
         user2Client.on('connect', function(data){
           user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
-          user2Client.on('refreshData', function(data){
-            data.should.equal('this is the body');
+          user2Client.on('syncOpenFile', function(openFile){
+            openFile.body.should.equal('this is file a');
+            openFile.fileName.should.equal('a.txt');
+            openFile.isDirty.should.equal(false);
             user1Client.disconnect();
             user2Client.disconnect();
             
@@ -115,36 +117,38 @@ describe("Code Functions",function(){
     });
   });//it should
 
-  it('Should broadcast refreshData for existing clients', function(done){
+  it('Should broadcast refreshData for existing clients on new file open', function(done){
     var user1Client = io.connect(socketURL, options);
-    var user2Client;refreshCounter = 0;
+    var user2Client;
 
     user1Client.on('connect', function(data){
       user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
       
-      user1Client.on('refreshData', function(data){
-        refreshCounter++;
-        if(refreshCounter==2){
-          data.should.equal('this is the body');
-          user1Client.disconnect();
-          user2Client.disconnect();
+      //need to have access permissions to mess about with data so get moderator role
+      user1Client.emit('changeUserId', 'bob');
 
-          done();
-        }
-      });
+      user1Client.on('userRoleChanged', function(userId, role){
+        role.should.equal('moderator');
+        
 
-      user2Client = io.connect(socketURL, options);
+        user1Client.on('refreshData', function(data){
+          data.should.equal('this is file a');
+        });
 
-      user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+        user2Client = io.connect(socketURL, options);
 
-        user2Client.on('roomJoined', function(){
-          user2Client.emit('changeUserId', 'charlene');
-          user2Client.emit('requestChangeRole', {userId:'charlene', newRole:'moderator', pass:'1234'});
+        user2Client.on('connect', function(data){
+          user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+          user1Client.emit('changeCurrentFile', 'a.txt');
 
-          user2Client.on('userRoleChanged', function(userId, role){
-            user2Client.emit('refreshData', 'this is the body', true);
+          user2Client.on('refreshData', function(data){
+            data.should.equal('this is file a');
+            user1Client.disconnect();
+            user2Client.disconnect();
+            
+            done();
           });
+
         });
       });
     });
@@ -183,40 +187,52 @@ describe("Code Functions",function(){
     });
   });//it should
 
-  it('Should hold changes between file switches', function(done){
+//TODO - makd client1 hostClient.emit('refreshData', fileBContent, true); and then flip files then verify change comes on join
+  it('Should hold changes for multiple files', function(done){
     var user1Client = io.connect(socketURL, options);
-    var user2Client;refreshCounter = 0;
+    var user2Client;
 
     user1Client.on('connect', function(data){
       user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
+      
+      //need to have access permissions to mess about with data so get moderator role
+      user1Client.emit('changeUserId', 'bob');
 
-      user1Client.on('refreshData', function(body){
-        refreshCounter++;
-        if(refreshCounter==2){
-          body.should.equal('this is file a changed');
-          user1Client.disconnect();
-          user2Client.disconnect();
-          done();          
-        }
-        console.log('refreshCounter:%s body:%s', refreshCounter, body);
-      });
+      user1Client.on('userRoleChanged', function(userId, role){
+        role.should.equal('moderator');
+        user1Client.emit('changeCurrentFile', 'a.txt');
+        
+        
 
-      user2Client = io.connect(socketURL, options);
+        user1Client.on('refreshData', function(data){
+          if(data==="this is file a"){
+            user1Client.emit('refreshData', 'this is file a modified', false);
+            user1Client.emit('changeCurrentFile', 'b.txt');
+          }
 
-      user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+          if(data==="this is file b"){
 
-        user2Client.on('roomJoined', function(){
-          user2Client.emit('changeUserId', 'charlene');
-          user2Client.emit('requestChangeRole', {userId:'charlene', newRole:'moderator', pass:'1234'});
+            user2Client = io.connect(socketURL, options);
 
-          user2Client.on('userRoleChanged', function(userId, role){
-            user2Client.emit('changeCurrentFile', "a.txt");
-            user2Client.emit('refreshData', 'this is file a changed', false);
-            user2Client.emit('changeCurrentFile', "b.txt");
-            user2Client.emit('refreshData', 'this is file b changed', false);
-            user2Client.emit('changeCurrentFile', "a.txt");//finally, flip back to a.txt. it should maintiain the changes and not pull from host again
-          });
+            user2Client.on('connect', function(data){
+              user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+              user2Client.on('syncOpenFile', function(openFile){
+                if(openFile.fileName==='a.txt'){
+                  openFile.body.should.equal('this is file a modified');
+                  openFile.isDirty.should.equal(true);
+                }else if (openFile.fileName==='b.txt'){
+                  openFile.body.should.equal('this is file b');
+                  openFile.isDirty.should.equal(false);
+                }     
+              });
+              user2Client.on('roomJoined', function(){
+                user1Client.disconnect();
+                user2Client.disconnect();
+
+                done();
+              })
+            });
+          }
         });
       });
     });

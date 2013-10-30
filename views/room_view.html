@@ -56,13 +56,13 @@
                 <div class="span12">
                     <form>
                         <ul class="nav nav-tabs">
-                            <li ng-repeat="openFile in openFiles" ng-class="{active:(openFile.fileName==currentFile)}">
+                            <li ng-repeat="(key, openFile) in bodyStore" ng-class="{active:(openFile.fileName==currentFile)}">
                               <a href="#" title="{{openFile.fileName}}" ng-hide="authMap[currentUser.role].changeCurrentFile!=true" ng-click="requestChangeCurrentFile(openFile.fileName)" data-toggle="tab">{{ openFile.fileName | namefrompath }}<span ng-show="openFile.isDirty">*</span><button class="close" type="button" ng-show="openFile.fileName!=currentFile && openFile.isDirty==false" ng-click="requestCloseFile(openFile.fileName); $event.stopPropagation()">×</button></a>
                               <a href="#" title="{{openFile.fileName}}" ng-show="authMap[currentUser.role].changeCurrentFile!=true">{{ openFile.fileName | namefrompath }}<span ng-show="openFile.isDirty">*</span><button class="close" type="button" ng-show="openFile.fileName!=currentFile && openFile.isDirty==false" ng-click="requestCloseFile(openFile.fileName); $event.stopPropagation()">×</button></a>                        
                             </li>
                         </ul>
 
-                        <textarea ui-codemirror="editorOptions" ng-model="body" inc-change="newChange"></textarea>
+                        <textarea ui-codemirror="editorOptions" ng-model="bodyStore[currentFile].body" inc-change="newChange"></textarea>
 
                         <label class="checkbox"><input type="checkbox" ng-model="editorOptions.lineWrapping"></input>line wrap</label>
                         <span class="text-warning" ng-hode="warning==''">{{warning}}</span>

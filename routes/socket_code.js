@@ -16,10 +16,7 @@ module.exports.listen = function(io, socket, rooms){
       if(socket===rooms[room].hostSocket){
         ofm.exists(room, rooms[room].currentFile, function(err,res){
           if(!res){
-            rooms[room].body = body;
-            if(broadcast){
-              socket.broadcast.to(room).emit('refreshData', body);
-            }
+            socket.broadcast.to(room).emit('refreshData', body);
 
             //all files chosen from the client are automatically 'open' i.e. no 'preview' functionality ah-la sublime
             ofm.store(room, rooms[room].currentFile, body, false, function(err,res){
@@ -28,10 +25,7 @@ module.exports.listen = function(io, socket, rooms){
           }
         })
       }else{
-        rooms[room].body = body;
-        if(broadcast){
-          socket.broadcast.to(room).emit('refreshData', body);
-        }        
+        ofm.store(room, rooms[room].currentFile, body, true, function(err,res){});        
       }       
     });
   });
@@ -42,16 +36,8 @@ module.exports.listen = function(io, socket, rooms){
       if (op.origin == '+input' || op.origin == 'paste' || op.origin == '+delete' || op.origin == 'undo') {
         socket.broadcast.to(room).emit('changeData', op);
 
-        //mark file as dirty and broadcast
-        console.log('setting isdirty to true for %s', rooms[room].currentFile);
-        ofm.setIsDirty(room, rooms[room].currentFile, true, function(err,res){
-          console.log('back from isDirty res:%s', res);
-          if(res){
-            ofm.getList(room, function(err, res){
-              io.sockets.in(room).emit('openFiles', res);
-            });
-          }
-        });
+        //mark file as dirty
+        ofm.setIsDirty(room, rooms[room].currentFile, true, function(err,res){});
       };
     });
   });  

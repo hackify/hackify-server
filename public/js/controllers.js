@@ -8,8 +8,7 @@ angular.module('myApp.controllers', []).
 
     $scope.currentFile = "no file";
     $scope.files = [];
-    $scope.openFiles = [];
-    $scope.body = "";
+    $scope.bodyStore = {};//muahahahaha
     $scope.messages = [];
     $scope.users = [];
     $scope.readOnly = true;
@@ -27,8 +26,18 @@ angular.module('myApp.controllers', []).
 
     //server --> client (notification that the active file has changed, data comes later)
     socket.on('changeCurrentFile', function (file, mimeType) {
-      $scope.currentFile = file;
-      $scope.editorOptions.mode = mimeType;
+      if(file!='no file'){
+        if(!$scope.bodyStore[file])
+          $scope.bodyStore[file] = {fileName: file, body:"", isDirty:false};
+
+        $scope.currentFile = file;
+        $scope.editorOptions.mode = mimeType;        
+      }
+    });
+    
+    socket.on('closeFile', function (file) {
+      if($scope.bodyStore[file])
+        delete $scope.bodyStore[file];
     });
 
     socket.on('roomReadOnly', function (readOnly) {
@@ -51,28 +60,31 @@ angular.module('myApp.controllers', []).
       //TODO - maybe do something with times... mebe push the last updated time from host and use on UI to 'red' the recently altered.. or order.. not sure
     });
 
-    socket.on('openFiles', function(files){
-      $scope.openFiles = files;
-    });
-
     //server --> client (server sends fresh data for active file)
     socket.on('refreshData', function (body) {
-      if(body){
-        $scope.body = body;
-      }else{
-        $scope.body = '';
-      }
+      $scope.bodyStore[$scope.currentFile].body = body;
+      $scope.bodyStore[$scope.currentFile].isDirty = false;
+    });
+
+    socket.on('syncOpenFile', function (openFile) {
+      $scope.bodyStore[openFile.fileName] = openFile;
+    });
+
+    socket.on('saveCurrentFile', function (data) {
+      $scope.bodyStore[data.file].body = data.body; //if all has gone well, this should do nothing, but it is a point of synchronisation
+      $scope.bodyStore[data.file].isDirty = false;
     });
 
     //server --> client (recieve an incremental operation from the active editor via the server)
     socket.on('changeData', function (data) {
+      $scope.bodyStore[$scope.currentFile].isDirty = true;
       $scope.newChange = data;
     });
 
     socket.on('resetHostData', function(){
       $scope.currentFile = "no file";
       $scope.files = [];
-      $scope.body = "";
+      $scope.bodyStore = {};
       $scope.warning = "";
     });
 
@@ -129,7 +141,7 @@ angular.module('myApp.controllers', []).
     //**** make stuff happen ****
     //***************************
 
-    $scope.requestChangeCurrentFile = function(file){
+    $scope.requestChangeCurrentFile = function(file){    
       socket.emit('changeCurrentFile', file);
     };
 
@@ -183,13 +195,14 @@ angular.module('myApp.controllers', []).
     //***************************
 
     $scope.onEditorChange = function(i, op){
-      if(op.origin!=='setValue'){
+      if(op.origin && op.origin!=='setValue'){
         if($scope.readOnly){
           $scope.warning = "Your changes will not be shared";
         }else{
           console.log('editor change:' + op);
           socket.emit('changeData', op);
-          socket.emit('refreshData', $scope.body, false);//refresh data on server but don't broadcast
+          socket.emit('refreshData', $scope.bodyStore[$scope.currentFile].body, false);//refresh data on server but don't broadcast
+          $scope.bodyStore[$scope.currentFile].isDirty = true;
         }
       }
     };

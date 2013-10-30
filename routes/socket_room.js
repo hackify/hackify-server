@@ -27,7 +27,6 @@ module.exports.listen = function(io, socket, rooms){
         rooms[data.name] = data;
         rooms[data.name].files = [];
         rooms[data.name].currentFile = "no file";
-        rooms[data.name].body = "";
         rooms[data.name].hostSocket = socket;
         rooms[data.name].moderatorPass = data.moderatorPass;
         rooms[data.name].authMap = {
@@ -85,13 +84,16 @@ module.exports.listen = function(io, socket, rooms){
       roomState.files.forEach(function(file){
         socket.emit('fileAdded', file)
       });
-      socket.emit('changeCurrentFile', roomState.currentFile, mime.lookup(roomState.currentFile));
-      socket.emit('refreshData', roomState.body);
+      
+      ofm.getAll(data.room, function(err, res){
+        res.forEach(function(openFile){
+          socket.emit('syncOpenFile', openFile);
+        });
+        socket.emit('changeCurrentFile', roomState.currentFile, mime.lookup(roomState.currentFile));
+      });
+
       socket.emit('roomReadOnly', roomState.readOnly);
       socket.emit('roomAuthMap', roomState.authMap);
-      ofm.getList(data.room, function(err, res){
-        socket.emit('openFiles', res);
-      });
 
       //tell this socket about all of the users (including itself)
       var clients = io.sockets.clients(data.room);

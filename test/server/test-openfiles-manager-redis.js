@@ -33,22 +33,6 @@ describe("Open Files Manager Redis Test",function(){
     });
   });//it should
 
-  it('Should retrieve a file list', function(done){
-    ofm.store(testRoom, "/users/michael/file.txt", "this is the body", true, function(err, res){
-        ofm.store(testRoom, "/users/michael/file2.txt", "this is the other body", false, function(err, res){
-            ofm.getList(testRoom, function(err, res){
-                should.not.exist(err);
-                res.length.should.equal(2);
-                res[0].fileName.should.equal('/users/michael/file.txt');
-                res[0].isDirty.should.equal(true);
-                res[1].fileName.should.equal('/users/michael/file2.txt');
-                res[1].isDirty.should.equal(false);
-                done();
-            });
-        });
-    });
-  });//it should
-
   it('Should indicate existance', function(done){
     ofm.store(testRoom, "/users/michael/file.txt", "this is the body", true, function(err, res){
         ofm.exists(testRoom, "/users/michael/file.txt", function(err, res){
@@ -57,8 +41,8 @@ describe("Open Files Manager Redis Test",function(){
             ofm.exists(testRoom, 'silly.txt', function(err, res){
                 should.not.exist(err);
                 res.should.equal(false);                
+                done();
             })
-            done();
         });
     });
   });//it should
@@ -124,12 +108,30 @@ describe("Open Files Manager Redis Test",function(){
         ofm.store(testRoom, "/users/michael/file2.txt", "this is the other body", false, function(err, res){
             ofm.remove(testRoom, "/users/michael/file.txt", function(err, res){
                 should.not.exist(err);
-                ofm.getList(testRoom, function(err, res){
+                ofm.getAll(testRoom, function(err, res){
                     res.length.should.equal(1);
                     res[0].fileName.should.equal('/users/michael/file2.txt');
                     res[0].isDirty.should.equal(false);
                     done();
                 });
+            });
+        });
+    });
+  });//it should
+
+  it('Should retrieve a full list', function(done){
+    ofm.store(testRoom, "/users/michael/file.txt", "this is the body", true, function(err, res){
+        ofm.store(testRoom, "/users/michael/file2.txt", "this is the other body", false, function(err, res){
+            ofm.getAll(testRoom, function(err, res){
+                should.not.exist(err);
+                res.length.should.equal(2);
+                res[0].fileName.should.equal('/users/michael/file.txt');
+                res[0].isDirty.should.equal(true);
+                res[0].body.should.equal("this is the body");
+                res[1].fileName.should.equal('/users/michael/file2.txt');
+                res[1].isDirty.should.equal(false);
+                res[1].body.should.equal("this is the other body");
+                done();
             });
         });
     });
