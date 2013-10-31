@@ -10,8 +10,9 @@ var express = require('express'),
   config = require('./config_' + (process.env.NODE_ENV || 'dev')),
   pageRoutes = require('./routes/page'),
   authRoutes = require('./routes/auth'),
-  eventRoutes = require('./routes/event')
-;
+  eventRoutes = require('./routes/event'),
+  ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'))
+  ;
 
 //server state
 var rooms = {};
@@ -116,9 +117,8 @@ var demoRoom = {
   name: 'demo',
   moderatorPass: demoModeratorPass,
   readOnly: false,
-  files: ['/demo.js'],
+  files: ['demo.js', 'readme.txt'],
   currentFile: "demo.js",
-  body: "var x = 'hackify rules!';",
   hostSocket: null,
   authMap: {
     moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
@@ -128,6 +128,9 @@ var demoRoom = {
   permanent: true
 }
 rooms['demo'] = demoRoom;
+ofm.store('demo', 'demo.js', "var x = 'hackify rules!';", false, function(err,res){});
+ofm.store('demo', 'readme.txt', "Hack it up!", false, function(err,res){});
+
 winston.info('demo room created', {moderatorPass: demoModeratorPass});
 
 server.listen(app.get('port'), function () {

@@ -66,8 +66,10 @@ module.exports.listen = function(io, socket, rooms){
 
   socket.on('closeFile', function (file) {
     socketAuth.checkedOperation(rooms, socket, 'changeCurrentFile', function(room, userId){
-      io.sockets.in(room).emit('closeFile', file);
-      ofm.remove(room, file, function(err,res){});
+      if(rooms[room].permanent!=true){
+        io.sockets.in(room).emit('closeFile', file);
+        ofm.remove(room, file, function(err,res){});
+      }
     });
   });  
 
