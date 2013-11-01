@@ -3,7 +3,7 @@
   "name": "hackify-server",
   "homepage": "http://hackify.org",
   "main": "server.js",
-  "version": "0.1.0-26",
+  "version": "0.1.0-28",
   "engines": {
     "node": ">= 0.8.12"
   },
