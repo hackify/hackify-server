@@ -11,7 +11,8 @@ var express = require('express'),
   pageRoutes = require('./routes/page'),
   authRoutes = require('./routes/auth'),
   eventRoutes = require('./routes/event'),
-  ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'))
+  ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
+  argv = require('optimist').argv
   ;
 
 //server state
@@ -55,7 +56,7 @@ passport.use(new gitHubStrategy({
 
 //*** set up the express app ***
 app.configure(function () {
-  app.set('port', process.env.PORT || config.port);
+  app.set('port', argv.port || process.env.PORT || config.port);
   app.set('views', __dirname + '/views');
   app.engine('html', require('ejs').renderFile);  //I don't love ejs but I hate jade
   app.use(express.static(path.join(__dirname, 'public')));

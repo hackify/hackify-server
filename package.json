@@ -1,9 +1,9 @@
-{
+sudo{
   "author": "Michael Dausmann",
   "name": "hackify-server",
   "homepage": "http://hackify.org",
   "main": "server.js",
-  "version": "0.1.0-28",
+  "version": "0.1.0-30",
   "engines": {
     "node": ">= 0.8.12"
   },
@@ -18,7 +18,8 @@
     "async": "0.2.9",
     "mime": "1.2.x",
     "universal-analytics": "0.2.3",
-    "redis": "0.8.4"
+    "redis": "0.8.4",
+    "optimist": "0.6.0"
   },
   "devDependencies": {
     "should": "1.2.2",
