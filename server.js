@@ -1,6 +1,5 @@
 var express = require('express'),
   ioSession = require('socket.io-session'),
-  sessionStore = new express.session.MemoryStore(),
   passport = require('passport'),
   gitHubStrategy = require('passport-github').Strategy,
   winston = require('winston'),
@@ -21,6 +20,19 @@ var rooms = {};
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
+
+//*** Set up the session store
+var sessionStore;
+if(config.useRedisForSessionStore){
+  var RedisStore = require('connect-redis')(express);
+  sessionStore = new RedisStore({
+    host:config.redisHost,
+    port: config.redisPort,
+    pass: config.redisPass
+  });
+}else{  
+  sessionStore = new express.session.MemoryStore();
+}
 
 //*** Passport session setup ***
 passport.serializeUser(function(user, done) {
@@ -96,6 +108,22 @@ app.del('/api/events/:key', eventRoutes.delete);
 app.post('/api/events', eventRoutes.store);
 app.post('/api/events/:key/comments', eventRoutes.addComment);
 
+//*** set up RedisStore if required ***
+if(config.useRedisForSocketIO){
+  var RedisStore = require('socket.io/lib/stores/redis'),
+      redis  = require('socket.io/node_modules/redis'),
+      pub    = redis.createClient(config.redisPort, config.redisHost),
+      sub    = redis.createClient(config.redisPort, config.redisHost),
+      client = redis.createClient(config.redisPort, config.redisHost)
+
+  if(config.redisPass){
+    client.auth(config.redisPass, function (err) { if (err) { throw err} });
+    pub.auth(config.redisPass, function (err) { if (err) { throw err} });
+    sub.auth(config.redisPass, function (err) { if (err) { throw err} });  
+  }
+
+  io.set('store', new RedisStore({redisPub : pub, redisSub : sub, redisClient : client}));     
+}
 
 //*** bind the express session to socket.io ***
 io.set('authorization', ioSession(express.cookieParser(config.siteSecret), sessionStore, function(data, accept){

@@ -120,15 +120,16 @@ describe("Open Files Manager Redis Test",function(){
   });//it should
 
   it('Should retrieve a full list', function(done){
-    ofm.store(testRoom, "/users/michael/file.txt", "this is the body", true, function(err, res){
-        ofm.store(testRoom, "/users/michael/file2.txt", "this is the other body", false, function(err, res){
+    ofm.store(testRoom, "/users/michael/afile.txt", "this is the body", true, function(err, res){
+        ofm.store(testRoom, "/users/michael/bfile.txt", "this is the other body", false, function(err, res){
             ofm.getAll(testRoom, function(err, res){
                 should.not.exist(err);
+                res.sort(function(a,b){return a.fileName - b.fileName});
                 res.length.should.equal(2);
-                res[0].fileName.should.equal('/users/michael/file.txt');
+                res[0].fileName.should.equal('/users/michael/afile.txt');
                 res[0].isDirty.should.equal(true);
                 res[0].body.should.equal("this is the body");
-                res[1].fileName.should.equal('/users/michael/file2.txt');
+                res[1].fileName.should.equal('/users/michael/bfile.txt');
                 res[1].isDirty.should.equal(false);
                 res[1].body.should.equal("this is the other body");
                 done();

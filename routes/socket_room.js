@@ -156,30 +156,34 @@ module.exports.listen = function(io, socket, rooms){
           io.sockets.in(room).emit('newChatMessage', userId + ' has left the room', 'hackify');
 
           //handle host socket disconnection
-          if(socket===rooms[room].hostSocket){
-            rooms[room].readOnly = true;
-            rooms[room].hostSocket = null;
-            socket.broadcast.to(room).emit('roomReadOnly', true);
-            io.sockets.in(room).emit('newChatMessage', 'room is now read only', 'hackify');
+          if(room in rooms){
+            if(socket===rooms[room].hostSocket){
+              rooms[room].readOnly = true;
+              rooms[room].hostSocket = null;
+              socket.broadcast.to(room).emit('roomReadOnly', true);
+              io.sockets.in(room).emit('newChatMessage', 'room is now read only', 'hackify');
+            }
           }
 
-          winston.info('user left room', {userId: userId, room:room, clientAddr: socket.handshake.address});
+          winston.info('user left room', {userId: userId, room:room, handshakeId: socket.id});
 
           //check if room is empty
-          if(io.sockets.clients(room).length===0 && !rooms[room].permanent){
+          if(room in rooms){
+            if(io.sockets.clients(room).length===0 && !rooms[room].permanent){
 
-            delete rooms[room];
+              delete rooms[room];
 
-            ofm.reset(room);
+              ofm.reset(room);
 
-            if(em.exists(room)){
-              var event = em.getByKey(room);
-              event.status = 'closed';
-              event.comments.push({userName:'hackify', comment:'room closed', date:new Date()});
-              em.store(event);
-            };
+              if(em.exists(room)){
+                var event = em.getByKey(room);
+                event.status = 'closed';
+                event.comments.push({userName:'hackify', comment:'room closed', date:new Date()});
+                em.store(event);
+              };
 
-            winston.info('room closed', {room:room});
+              winston.info('room closed', {room:room});
+            }
           }
         })
       }
