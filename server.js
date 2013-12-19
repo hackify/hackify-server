@@ -11,6 +11,7 @@ var express = require('express'),
   authRoutes = require('./routes/auth'),
   eventRoutes = require('./routes/event'),
   ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
+  fm = require('./lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash')),
   argv = require('optimist').argv
   ;
 
@@ -146,8 +147,6 @@ var demoRoom = {
   name: 'demo',
   moderatorPass: demoModeratorPass,
   readOnly: false,
-  files: ['demo.js', 'readme.txt'],
-  currentFile: "demo.js",
   hostSocket: null,
   authMap: {
     moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
@@ -157,6 +156,9 @@ var demoRoom = {
   permanent: true
 }
 rooms['demo'] = demoRoom;
+fm.store('demo', 'demo.js', function(err,res){});
+fm.store('demo', 'readme.txt', function(err,res){});
+fm.setCurrentFile('demo', 'demo.js', function(err,res){});
 ofm.store('demo', 'demo.js', "var x = 'hackify rules!';", false, function(err,res){});
 ofm.store('demo', 'readme.txt', "Hack it up!", false, function(err,res){});
 

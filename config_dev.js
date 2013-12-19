@@ -15,6 +15,7 @@ exports.gaTrackingId = null;
 
 exports.testRoomName = 'mochatest';
 
+exports.useRedisForFiles = false;
 exports.useRedisForOpenFiles = false;
 exports.useRedisForEvents = false;
 exports.useRedisForSocketIO = false;

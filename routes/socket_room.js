@@ -6,7 +6,8 @@ var vcompare = require('../lib/vcompare'),
     config = require('../config_' + (process.env.NODE_ENV || 'dev')),
     socketRoles = require('./socket_roles'),
     em = require('../lib/events_manager_' + ((config.useRedisForEvents)?'redis' :'hash')),
-    ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash'));
+    ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
+    fm = require('../lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket, rooms){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
@@ -25,8 +26,6 @@ module.exports.listen = function(io, socket, rooms){
         socket.join(data.name);
 
         rooms[data.name] = data;
-        rooms[data.name].files = [];
-        rooms[data.name].currentFile = "no file";
         rooms[data.name].hostSocket = socket;
         rooms[data.name].moderatorPass = data.moderatorPass;
         rooms[data.name].authMap = {
@@ -39,9 +38,12 @@ module.exports.listen = function(io, socket, rooms){
         socket.broadcast.to(data.name).emit('newUser', {userId:'host', isYou:false});
         socket.broadcast.to(data.name).emit('newChatMessage', 'host has re-entered the room', 'hackify');
         socket.broadcast.to(data.name).emit('resetHostData');
-        rooms[data.name].files.forEach(function(file){
-          socket.broadcast.to(data.name).emit('fileAdded', file)
+        fm.getAll(data.name, function(err, files){
+          files.forEach(function(file){
+            socket.broadcast.to(data.name).emit('fileAdded', file)
+          });
         });
+
         socket.broadcast.to(data.name).emit('roomReadOnly', rooms[data.name].readOnly);
 
         if(em.exists(data.name)){
@@ -81,15 +83,19 @@ module.exports.listen = function(io, socket, rooms){
 
       //tell the socket about the room state
       var roomState = rooms[data.room];
-      roomState.files.forEach(function(file){
-        socket.emit('fileAdded', file)
+      fm.getAll(data.name, function(err, files){
+        files.forEach(function(file){
+          socket.emit('fileAdded', file)
+        });
       });
       
       ofm.getAll(data.room, function(err, res){
         res.forEach(function(openFile){
           socket.emit('syncOpenFile', openFile);
         });
-        socket.emit('changeCurrentFile', roomState.currentFile, mime.lookup(roomState.currentFile));
+        fm.getCurrentFile(data.room, function(err, currentFile){
+          socket.emit('changeCurrentFile', currentFile, mime.lookup(currentFile));
+        });
       });
 
       socket.emit('roomReadOnly', roomState.readOnly);
@@ -174,6 +180,7 @@ module.exports.listen = function(io, socket, rooms){
               delete rooms[room];
 
               ofm.reset(room);
+              fm.reset(room);
 
               if(em.exists(room)){
                 var event = em.getByKey(room);
