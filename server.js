@@ -12,11 +12,9 @@ var express = require('express'),
   eventRoutes = require('./routes/event'),
   ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
   fm = require('./lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash')),
+  rm = require('./lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash')),
   argv = require('optimist').argv
   ;
-
-//server state
-var rooms = {};
 
 var app = express();
 var server = require('http').createServer(app);
@@ -134,11 +132,11 @@ io.set('authorization', ioSession(express.cookieParser(config.siteSecret), sessi
 //*** Room (Socket) routes ***
 io.set('log level', 2);
 io.sockets.on('connection', function(socket){
-  require('./routes/socket_chat').listen(io, socket, rooms);
-  require('./routes/socket_code').listen(io, socket, rooms);
-  require('./routes/socket_file').listen(io, socket, rooms);
-  require('./routes/socket_room').listen(io, socket, rooms);
-  require('./routes/socket_roles').listen(io, socket, rooms);
+  require('./routes/socket_chat').listen(io, socket);
+  require('./routes/socket_code').listen(io, socket);
+  require('./routes/socket_file').listen(io, socket);
+  require('./routes/socket_room').listen(io, socket);
+  require('./routes/socket_roles').listen(io, socket);
 });
 
 //***** Set up the demo room *****
@@ -155,7 +153,7 @@ var demoRoom = {
   },
   permanent: true
 }
-rooms['demo'] = demoRoom;
+rm.set('demo', demoRoom);
 fm.store('demo', 'demo.js', function(err,res){});
 fm.store('demo', 'readme.txt', function(err,res){});
 fm.setCurrentFile('demo', 'demo.js', function(err,res){});

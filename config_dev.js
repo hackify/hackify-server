@@ -20,6 +20,7 @@ exports.useRedisForOpenFiles = false;
 exports.useRedisForEvents = false;
 exports.useRedisForSocketIO = false;
 exports.useRedisForSessionStore = false;
+exports.useRedisForRoomState = false;
 exports.redisHost = '127.0.0.1';
 exports.redisPort = 6379;
 exports.redisPass = null;

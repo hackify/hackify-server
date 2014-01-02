@@ -62,63 +62,82 @@ describe("Chat Functions",function(){
     var message = 'Hello World';
     var messages = 0;    
 
-    var checkMessage = function(client){
-      client.on('newChatMessage', function(msg, userId){
-        //interested only in user messages
-        if(userId!='hackify'){
-          msg.should.equal(message);
-          client.disconnect();
-          messages++;
-          if(messages === 2){
-            done();
-          };
-        }
-      });
-    };
-
     user1Client = io.connect(socketURL, options);
-    checkMessage(user1Client);
+    user2Client = io.connect(socketURL, options);
 
     user1Client.on('connect', function(data){
       user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
+    });
 
-      user2Client = io.connect(socketURL, options);
-      checkMessage(user2Client);
+    user2Client.on('connect', function(data){
+      user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+    });
 
-      user2Client.on('connect', function(data){
-        user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
-        user2Client.emit('newChatMessage', message);
-      });
+    user2Client.on('roomJoined', function(){
+      user1Client.emit('newChatMessage', message);
+    });
+
+    user2Client.on('newChatMessage', function(msg, userId){
+      //interested only in user messages
+      if(userId!='hackify'){
+        msg.should.equal(message);
+      }
+      user2Client.disconnect();
+      user1Client.disconnect();
+      done();
     });
   });//it should
 
   it('Should change user id and broadcast change and a chat message to all users', function(done){
-    var user1Client;
-    var messages = 0;
-
-    var checkMessage = function(client){
-      client.on('userIdChanged', function(userId, newUserId){
-        userId.substring(0,4).should.equal('hckr');
-        newUserId.should.equal('charlene');
-      });
-
-      client.on('newChatMessage', function(msg, userId){
-        messages++;
-        if(messages==2){
-          msg.indexOf('changed name to charlene').should.not.equal(-1);
-          client.disconnect();
-          done();
-        }
-      });
-    };
+    var user1Client, user2Client;
+    var messages1 = 0, messages2 = 0;
 
     user1Client = io.connect(socketURL, options);
-    checkMessage(user1Client);
+    user2Client = io.connect(socketURL, options);
+
 
     user1Client.on('connect', function(data){
       user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
+
+    });
+
+    user2Client.on('connect', function(data){
+      user2Client.emit('joinRoom', {room: mainConfig.testRoomName});
+    });
+
+    user2Client.on('roomJoined', function(){
       user1Client.emit('changeUserId', 'charlene');
     });
+
+    user1Client.on('userIdChanged', function(userId, newUserId){
+      userId.substring(0,4).should.equal('hckr');
+      newUserId.should.equal('charlene');
+    });
+
+    user2Client.on('userIdChanged', function(userId, newUserId){
+      userId.substring(0,4).should.equal('hckr');
+      newUserId.should.equal('charlene');
+    });
+
+    user1Client.on('newChatMessage', function(msg, userId){
+      messages1++;
+      if(messages1==2){
+        msg.indexOf('changed name to charlene').should.not.equal(-1);
+        user1Client.disconnect();
+      }
+    });   
+
+    user2Client.on('newChatMessage', function(msg, userId){
+      messages2++;
+      if(messages2==1){
+        msg.indexOf('changed name to charlene').should.not.equal(-1);
+      }
+      if(messages2==2){
+        user2Client.disconnect();
+        done();
+      }
+    });    
+
   });//it should
 
 

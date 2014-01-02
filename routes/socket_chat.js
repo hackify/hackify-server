@@ -1,18 +1,19 @@
-var socketAuth = require('../lib/socket_auth');
+var socketAuth = require('../lib/socket_auth'),
+    rm = require('../lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash'));
 
-module.exports.listen = function(io, socket, rooms){
+module.exports.listen = function(io, socket){
   //client --> server --> clients (chat message from client)
   socket.on('newChatMessage', function (data) {
-    socketAuth.checkedOperation(rooms, socket, 'newChatMessage', function(room, userId){
-      io.sockets.in(room).emit('newChatMessage', data, userId);          
+    socketAuth.checkedOperation(socket, 'newChatMessage', function(roomName, roomState, userId){
+      io.sockets.in(roomName).emit('newChatMessage', data, userId);          
     });
   });
 
   socket.on('changeUserId', function (newUserId) {
-    socketAuth.checkedOperation(rooms, socket, 'changeUserId', function(room, userId){
+    socketAuth.checkedOperation(socket, 'changeUserId', function(roomName, roomState, userId){
       socket.set('userId', newUserId, function(){
-        io.sockets.in(room).emit('userIdChanged',userId, newUserId);
-        io.sockets.in(room).emit('newChatMessage', userId + ' changed name to ' + newUserId, 'hackify');              
+        io.sockets.in(roomName).emit('userIdChanged',userId, newUserId);
+        io.sockets.in(roomName).emit('newChatMessage', userId + ' changed name to ' + newUserId, 'hackify');              
       });
     });
   });

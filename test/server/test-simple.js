@@ -34,7 +34,6 @@ describe("Simple Socket Test",function(){
 
   afterEach(function(done){
     hostClient.disconnect();
-    // setTimeout(function(){done();}, 500);
     done();
   });
 
@@ -46,25 +45,8 @@ describe("Simple Socket Test",function(){
     });
 
     user1Client.on('roomJoined', function(){
-      console.log('room joined');
       user1Client.disconnect();
       done();
     });
   });//it should
-
-  // it('Should 2 allow users to join a room', function(done){
-  //   var user1Client = io.connect(socketURL, options);
-    
-  //   user1Client.on('connect', function(data){
-  //     user1Client.emit('joinRoom', {room: mainConfig.testRoomName});
-  //   });
-
-  //   user1Client.on('roomJoined', function(){
-  //     console.log('room joined');
-  //     user1Client.disconnect();
-  //     done();
-  //   });
-  // });//it should
-
-
-});//describe
+});//describe yay
