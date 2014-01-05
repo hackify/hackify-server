@@ -101,9 +101,7 @@ module.exports.listen = function(io, socket){
 
             //tell the socket about the room state
             fm.getAll(roomName, function(err, files){
-              console.log('fm.getAll return files.length:%s', files.length );
               files.forEach(function(file){
-                console.log('emiting fileAdded file:%s', file);
                 socket.emit('fileAdded', file)
               });
             });
