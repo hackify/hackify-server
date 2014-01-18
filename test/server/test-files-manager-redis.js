@@ -81,7 +81,7 @@ describe("Files Manager Hash Test",function(){
         fm.store(testRoom, "/users/michael/bfile.txt", function(err, res){
             fm.getAll(testRoom, function(err, res){
                 should.not.exist(err);
-                res.sort(function(a,b){return a - b});
+                res.sort(function(a,b){return b < a});
                 res.length.should.equal(2);
                 res[0].should.equal('/users/michael/afile.txt');
                 res[1].should.equal('/users/michael/bfile.txt');

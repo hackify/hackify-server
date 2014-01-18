@@ -44,7 +44,6 @@ describe("Events Manager Test",function(){
   //   var startTime = new Date();
   //   var newEvent = new em.Event('testEvent', 'This is a test', startTime, 'mod123', 'javascript node node.js');
   //   em.store(newEvent, function(err, res){
-  //       // console.log('err:%s res:%s', err, res);
   //       em.getByKey('testEvent', function(retrievedEvent){          
   //           retrievedEvent.key.should.equal('testEvent');
   //           retrievedEvent.description.should.equal('This is a test');

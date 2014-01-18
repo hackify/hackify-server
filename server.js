@@ -13,7 +13,9 @@ var express = require('express'),
   ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
   fm = require('./lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash')),
   rm = require('./lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash')),
-  argv = require('optimist').argv
+  um = require('./lib/users_manager_' + ((config.useRedisForUserState)?'redis' :'hash')),
+  argv = require('optimist').argv,
+  async = require('async')
   ;
 
 var app = express();
@@ -139,28 +141,44 @@ io.sockets.on('connection', function(socket){
   require('./routes/socket_roles').listen(io, socket);
 });
 
-//***** Set up the demo room *****
-var demoModeratorPass = Math.floor(Math.random() * 999999).toString();
-var demoRoom = {
-  name: 'demo',
-  moderatorPass: demoModeratorPass,
-  readOnly: false,
-  hostSocket: null,
-  authMap: {
-    moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
-    editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
-    default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false}
-  },
-  permanent: true
-}
-rm.set('demo', demoRoom);
-fm.store('demo', 'demo.js', function(err,res){});
-fm.store('demo', 'readme.txt', function(err,res){});
-fm.setCurrentFile('demo', 'demo.js', function(err,res){});
-ofm.store('demo', 'demo.js', "var x = 'hackify rules!';", false, function(err,res){});
-ofm.store('demo', 'readme.txt', "Hack it up!", false, function(err,res){});
+if(!argv.slave){
+  rm.getAllRoomNames(function(err, roomNames){
+    winston.info('resetting %s rooms', roomNames.length);
+    async.forEach(roomNames, function(roomName, callback){
+      async.parallel([
+          function(callback){ rm.reset(roomName, callback); },
+          function(callback){ ofm.reset(roomName, callback); },
+          function(callback){ fm.reset(roomName, callback); },
+          function(callback){ um.resetRoom(roomName, callback); }
+        ], 
+        function(err){callback();})//callback for parallel (don't use)
+    }, function(err){
+      var demoModeratorPass = Math.floor(Math.random() * 999999).toString();
+      var demoRoom = {
+        name: 'demo',
+        moderatorPass: demoModeratorPass,
+        readOnly: false,
+        hostSocket: null,
+        authMap: {
+          moderator:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':true},
+          editor:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false},
+          default:{'editData':true, 'newChatMessage':true, 'changeUserId':true, 'saveCurrentFile': true, 'changeCurrentFile':true, 'changeRole':false}
+        },
+        permanent: true
+      }
+      rm.set('demo', demoRoom);
+      fm.store('demo', 'demo.js', function(err,res){});
+      fm.store('demo', 'readme.txt', function(err,res){});
+      fm.setCurrentFile('demo', 'demo.js', function(err,res){});
+      ofm.store('demo', 'demo.js', "var x = 'hackify rules!';", false, function(err,res){});
+      ofm.store('demo', 'readme.txt', "Hack it up!", false, function(err,res){});
 
-winston.info('demo room created', {moderatorPass: demoModeratorPass});
+      winston.info('demo room created', {moderatorPass: demoModeratorPass});
+    });
+  });
+}else{
+  winston.info('slave instance');
+}
 
 server.listen(app.get('port'), function () {
   winston.info("hackify server listening", { port: app.get('port') });

@@ -3,7 +3,7 @@ var config = require('./config_mocha');
 var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
 var rm = require('../../lib/rooms_manager_hash');
 
-var testRoom = "testroom";
+var testRoom = "testroom", testRoom2 = "testroom2";
 
 var testRoomState = {
   name: testRoom,
@@ -43,6 +43,33 @@ describe("Rooms Manager Hash",function(){
             res.name.should.equal(testRoom);
             done();
         });
+    });
+  });//it should
+
+  it('should indicate existance', function(done){
+    rm.set(testRoom, testRoomState, function(err, res){
+        rm.exists(testRoom, function(err, res){
+            should.not.exist(err);
+            res.should.equal(true);
+            rm.exists('silly', function(err, res){
+              should.not.exist(err);
+              res.should.equal(false);
+              done();
+            })
+        });
+    });
+  });//it should
+
+  it('should retrieve room names', function(done){
+    rm.set(testRoom, testRoomState, function(err, res){
+      rm.set(testRoom2, testRoomState, function(err, res){
+        rm.getAllRoomNames(function(err, roomNames){
+          roomNames.length.should.equal(2);
+          roomNames[0].should.equal(testRoom);
+          roomNames[1].should.equal(testRoom2);
+          done();
+        });
+      });
     });
   });//it should
 

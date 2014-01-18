@@ -124,7 +124,7 @@ describe("Open Files Manager Hash Test",function(){
         ofm.store(testRoom, "/users/michael/bfile.txt", "this is the other body", false, function(err, res){
             ofm.getAll(testRoom, function(err, res){
                 should.not.exist(err);
-                res.sort(function(a,b){return a.fileName - b.fileName});
+                res.sort(function(a,b){return b.fileName < a.fileName});
                 res.length.should.equal(2);
                 res[0].fileName.should.equal('/users/michael/afile.txt');
                 res[0].isDirty.should.equal(true);

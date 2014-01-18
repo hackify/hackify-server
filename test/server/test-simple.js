@@ -5,6 +5,7 @@ var mainConfig = require('../../config_' + (process.env.NODE_ENV || 'dev'));
 
 var socketURL = config.socketURL;
 
+
 var options ={
   transports: ['websocket'],
   'force new connection': true
@@ -34,7 +35,7 @@ describe("Simple Socket Test",function(){
 
   afterEach(function(done){
     hostClient.disconnect();
-    done();
+    config.doneWithWait(done);
   });
 
   it('Should allow users to join a room', function(done){
@@ -46,7 +47,7 @@ describe("Simple Socket Test",function(){
 
     user1Client.on('roomJoined', function(){
       user1Client.disconnect();
-      done();
+      config.doneWithWait(done);
     });
   });//it should
-});//describe yay
+});//describe

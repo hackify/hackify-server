@@ -13,7 +13,7 @@ module.exports.listen = function(io, socket){
     meant that if you mis-configured a role to have one but not the other, crazy bugs would ensue.
     */
     socketAuth.checkedOperation(socket, 'editData', function(roomName, roomState, userId){
-      //If the refresh is coming from the host, and is already in the open files, ignore it i.e. open files is the source of truth for this file. TODO - handle change to the host file for open files
+      //If the refresh is coming from the host, and is already in the open files, ignore it i.e. open files is the source of truth for this file.
       fm.getCurrentFile(roomName, function(err, currentFile){
         if(socket.id===roomState.hostSocket){
           ofm.exists(roomName, currentFile, function(err,res){

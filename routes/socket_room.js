@@ -1,5 +1,4 @@
 var vcompare = require('../lib/vcompare'),
-    async = require('async'),
     winston = require('winston'),
     uaw = require('../lib/universal-analytics-wrapper'),
     mime = require('mime'),
@@ -8,7 +7,8 @@ var vcompare = require('../lib/vcompare'),
     em = require('../lib/events_manager_' + ((config.useRedisForEvents)?'redis' :'hash')),
     ofm = require('../lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
     fm = require('../lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash')),
-    rm = require('../lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash'));
+    rm = require('../lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash')),
+    um = require('../lib/users_manager_' + ((config.useRedisForUserState)?'redis' :'hash'));
 
 module.exports.listen = function(io, socket){
   //host --> server --> host (host sends metadata and a request to create a new room, Host in return gets a request to get fresh file data)
@@ -24,10 +24,8 @@ module.exports.listen = function(io, socket){
         var roomState = data;
         var roomName = roomState.name;
 
-        socket.set('room', roomName);
-        socket.set('userId', 'host');
-        socket.set('role', 'host');
-        socket.join(data.name);
+        um.create(roomName, socket.id, 'host', {}, 'host', '');
+        socket.join(roomName);
 
         // winston.info('socket_room.listen.createRoom socket.id:%s', socket.id);
         roomState.hostSocket = socket.id;
@@ -86,13 +84,7 @@ module.exports.listen = function(io, socket){
         var userId = (userInfo.displayName)?userInfo.displayName:'hckr' + Math.floor(Math.random() * 9999).toString();
 
         //set up the socket state
-        async.parallel([
-          function(callback){ socket.set('room', roomName, function(err, res){ callback(err, res); }); },
-          function(callback){ socket.set('userInfo', userInfo, function(err, res){ callback(err, res); }); },
-          function(callback){ socket.set('userId', userId, function(err, res){ callback(err, res); }); },
-          function(callback){ socket.set('role', 'default', function(err, res){ callback(err, res); }); }
-        ],
-        function(err, results){
+        um.create(roomName, socket.id, userId, userInfo, 'default', '', function(err, results){
           if(!err){
             //join the room
             socket.join(roomName);
@@ -119,32 +111,19 @@ module.exports.listen = function(io, socket){
             socket.emit('roomAuthMap', roomState.authMap);
 
             //tell this socket about all of the users (including itself)
-            var clients = io.sockets.clients(roomName);
-            clients.forEach(function(client){
-              async.parallel([
-                function(callback){ client.get('userId', function(err, val){ callback(err, val); }); },
-                function(callback){ client.get('userInfo', function(err, val){ callback(err, val); }); },
-                function(callback){ client.get('role', function(err, val){ callback(err, val); }); },
-                function(callback){ client.get('requestedRole', function(err, val){ callback(err, val); }); }
-              ],
-              function(err, results){
-                if(!err){
-                  var clientUserId = results[0], clientUserInfo = results[1], clientRole = results[2], clientRequestedRole = results[3];
-
-                  if(clientUserId){
-                    socket.emit('newUser', {
-                      userId:clientUserId, 
-                      isYou:(client===socket)?true:false,
-                      userInfo: clientUserInfo,
-                      role: clientRole,
-                      requestedRole: clientRequestedRole
-                    });
-                  }
-                } else {
-                  winston.error('problem determining socket info', {err:err});
+            um.getAllInRoom(roomName, function(err, users){
+              users.forEach(function(user){
+                if(user.userId){
+                  socket.emit('newUser', {
+                    userId:user.userId, 
+                    isYou:(user.userId===userId)?true:false,
+                    userInfo: user.userInfo,
+                    role: user.role,
+                    requestedRole: user.requestedRole
+                  });                  
                 }
               });
-            });        
+            });
 
             //now tell all of the other sockets about the new user
             socket.broadcast.to(roomName).emit('newUser', {userId:userId, isYou:false, userInfo:userInfo, role:'default'});
@@ -160,9 +139,11 @@ module.exports.listen = function(io, socket){
             winston.info('user joined room', {userId: userId, room:roomName, clientAddr: socket.handshake.address});
             
             //make user the moderator if they are the first joiner
-            if(!em.exists(roomName) && io.sockets.clients(roomName).length === 2){
-              socketRoles.doRoleChange(io, roomName, userId, 'moderator');
-            }
+            um.countMembersInRoom(roomName, function(err, userCount){
+              if(roomName!=='demo' && !em.exists(roomName) && userCount === 2){
+                socketRoles.doRoleChange(io, roomName, userId, 'moderator');
+              }
+            });
           } else {
             winston.error('problem setting socket state', {err:err});
           }
@@ -174,42 +155,48 @@ module.exports.listen = function(io, socket){
   });
 
   socket.on('disconnect', function(){
-    socket.get('room', function (err, roomName) {
-      if(!err && roomName){
-        rm.get(roomName, function(err, roomState){
-          if(!err && roomState){
-            socket.get('userId', function(err, userId){
-              socket.leave(roomName);
-              socket.set('room', null);
+    um.get(socket.id, function(err, userState){
+      if(!err && userState){
+        var roomName = userState.roomName;
+        var userId = userState.userId;
+        winston.info('disconnect', {userId: userId, room:roomName, clientId: socket.id});
+        socket.leave(roomName);
+        um.remove(socket.id, function(err, res){
+          rm.get(roomName, function(err, roomState){
+            if(!err && roomState){
+
+              //tell everybody what happenned
               io.sockets.in(roomName).emit('exitingUser',userId);
               io.sockets.in(roomName).emit('newChatMessage', userId + ' has left the room', 'hackify');
-
               winston.info('user left room', {userId: userId, room:roomName, handshakeId: socket.id});
 
-              //check if room is empty
-              if(io.sockets.clients(roomName).length===0 && !roomState.permanent){
-                ofm.reset(roomName);
-                fm.reset(roomName);
-                rm.reset(roomName);
+              um.countMembersInRoom(roomName, function(err, userCount){
+                //check if room is empty
+                if(userCount===0 && !roomState.permanent){
+                  ofm.reset(roomName);
+                  fm.reset(roomName);
+                  rm.reset(roomName);
+                  um.resetRoom(roomName);
 
-                if(em.exists(roomName)){
-                  var event = em.getByKey(roomName);
-                  event.status = 'closed';
-                  event.comments.push({userName:'hackify', comment:'room closed', date:new Date()});
-                  em.store(event);
-                };
+                  if(em.exists(roomName)){
+                    var event = em.getByKey(roomName);
+                    event.status = 'closed';
+                    event.comments.push({userName:'hackify', comment:'room closed', date:new Date()});
+                    em.store(event);
+                  };
 
-                winston.info('room closed', {room:roomName});
-              }else if(socket.id===roomState.hostSocket){
-                roomState.readOnly = true;
-                roomState.hostSocket = null;
-                rm.set(roomName, roomState, function(err, res){
-                  socket.broadcast.to(roomName).emit('roomReadOnly', true);
-                  io.sockets.in(roomName).emit('newChatMessage', 'room is now read only', 'hackify');                  
-                });
-              }
-            });
-          }
+                  winston.info('room closed', {room:roomName});
+                }else if(socket.id===roomState.hostSocket){
+                  roomState.readOnly = true;
+                  roomState.hostSocket = null;
+                  rm.set(roomName, roomState, function(err, res){
+                    socket.broadcast.to(roomName).emit('roomReadOnly', true);
+                    io.sockets.in(roomName).emit('newChatMessage', 'room is now read only', 'hackify');                  
+                  });
+                }
+              });
+            }
+          });
         });
       }
     });
