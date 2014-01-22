@@ -13,7 +13,7 @@
     "jquery":"latest",
     "bootstrap-css":"2.3.2",
     "angular": "latest",
-    "angular-socket-io": "latest",
+    "angular-socket-io": "0.2.0",
     "codemirror": "latest"
   }
 }
