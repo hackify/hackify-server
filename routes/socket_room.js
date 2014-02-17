@@ -80,8 +80,9 @@ module.exports.listen = function(io, socket){
     rm.get(roomName, function(err, roomState){
       if(!err && roomState){
         //set up the socket properties
-        var userInfo = (socket.handshake.session && socket.handshake.session.passport.user)?socket.handshake.session.passport.user:{};
-        var userId = (userInfo.displayName)?userInfo.displayName:'hckr' + Math.floor(Math.random() * 9999).toString();
+        console.log("socket.handshake.session:%s", JSON.stringify(socket.handshake.session));
+        var userInfo = (socket.handshake.session && socket.handshake.session.uid)?socket.handshake.session:{};
+        var userId = (userInfo.name)?userInfo.name:'hckr' + Math.floor(Math.random() * 9999).toString();
 
         //set up the socket state
         um.create(roomName, socket.id, userId, userInfo, 'default', '', function(err, results){

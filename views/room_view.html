@@ -75,8 +75,8 @@
                     <ul id="userlist">
                         <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}" ng-hide="user.userId == 'host'">
                             <div class="ng-cloak">
-                                <img ng-hide="user.userInfo.avatar_url" src="/img/unknown.png" alt="{{ user.userId }}" />
-                                <img ng-show="user.userInfo.avatar_url" src="{{ user.userInfo.avatar_url }}" alt="{{ user.userId }}" />
+                                <img ng-hide="user.userInfo.image" src="/img/unknown.png" alt="{{ user.userId }}" />
+                                <img ng-show="user.userInfo.image" src="{{ user.userInfo.image }}" alt="{{ user.userId }}" />
                             </div>
                             <a ng-click="$parent.focusUser = user; $parent.selfDetailOpen = true">{{ user.userId }}</a>
                             <div ng-hide="user.role=='default'">({{user.role}})</div>
@@ -124,18 +124,13 @@
     <div modal="selfDetailOpen" close="selfDetailOpen = false" options="{backdrop: false, dialogFade:true}">
         <div class="modal-header">
             <h3>{{focusUser.userId}}</h3>
-            <form class="form-inline" ng-show="focusUser.isYou">
-                <input ng-model="newUserId" placeholder="New Nickname"></input>
-                <button class="btn" ng-click="changeUserId()">change</button>
-            </form>         
         </div>
         <div class="modal-body">
-            <div class="ng-cloak">
-                <img ng-hide="focusUser.userInfo.avatar_url" src="/img/unknown.png" />
-                <img ng-show="focusUser.userInfo.avatar_url" src="{{ focusUser.userInfo.avatar_url }}" />
-            </div>
-
-            <a ng-show="focusUser.isYou && !focusUser.userInfo.username" class="btn-auth btn-github" ng-href="/auth/github?returnTo=/rooms/{{name}}">Sign in with <b>Github</b></a>
+            <form class="form-inline" ng-show="focusUser.isYou">
+                <h4>Change Name</h4>
+                <input ng-model="newUserId" placeholder="New Nickname"></input>
+                <button class="btn" ng-click="changeUserId()">change</button>
+            </form>     
 
             <div ng-show="currentUser.role=='moderator'">
                 <h4>Change Role</h4>
