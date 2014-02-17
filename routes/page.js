@@ -15,13 +15,6 @@ module.exports.room = function(req, res){
   });
 };
 
-module.exports.events = function(req, res){
-  res.render('events_view.html', {
-    user: req.user,
-    gaTrackingId: config.gaTrackingId
-  });
-};
-
 module.exports.rooms = function(req, res){
   user: req.user,
   res.render('rooms_view.html', {

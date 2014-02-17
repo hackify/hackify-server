@@ -8,7 +8,6 @@ var express = require('express'),
   config = require('./config_' + (process.env.NODE_ENV || 'dev')),
   pageRoutes = require('./routes/page'),
   authRoutes = require('./routes/auth'),
-  eventRoutes = require('./routes/event'),
   ofm = require('./lib/openfiles_manager_' + ((config.useRedisForOpenFiles)?'redis' :'hash')),
   fm = require('./lib/files_manager_' + ((config.useRedisForFiles)?'redis' :'hash')),
   rm = require('./lib/rooms_manager_' + ((config.useRedisForRoomState)?'redis' :'hash')),
@@ -54,18 +53,6 @@ app.configure(function () {
 app.get('/', pageRoutes.index);
 app.get('/rooms/:roomId', pageRoutes.room);
 app.get('/rooms', pageRoutes.rooms);
-app.get('/events', pageRoutes.events);
-app.get('/events/:key', pageRoutes.events);
-
-//*** event rest api ***
-app.get('/api/tags', eventRoutes.getTags);
-app.get('/api/events', eventRoutes.getAllEvents);
-app.get('/api/events/tagged/:tags', eventRoutes.getEventsByTag);
-app.get('/api/events/:key', eventRoutes.get);
-app.del('/api/events/:key', eventRoutes.delete);
-// app.post('/api/events', authRoutes.ensureAuthenticated, eventRoutes.store);
-app.post('/api/events', eventRoutes.store);
-app.post('/api/events/:key/comments', eventRoutes.addComment);
 
 //*** set up RedisStore if required ***
 if(config.useRedisForSocketIO){
