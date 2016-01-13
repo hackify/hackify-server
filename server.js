@@ -76,6 +76,7 @@ io.set('authorization', ioSession(express.cookieParser(config.siteSecret), sessi
 //*** Room (Socket) routes ***
 io.set('log level', 2);
 io.sockets.on('connection', function(socket){
+  winston.info('connection', {clientId: socket.id});
   require('./routes/socket_chat').listen(io, socket);
   require('./routes/socket_code').listen(io, socket);
   require('./routes/socket_file').listen(io, socket);

@@ -19,9 +19,14 @@
     "redis": "0.8.4",
     "optimist": "0.6.0",
     "connect-redis": "1.4.6",
-    "cookie": "0.1.0" 
+    "cookie": "0.1.0",
+    "passport-github": "0.1.5"
   },
   "devDependencies": {
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.13.10",
+    "karma-firefox-launcher": "^0.1.6",
+    "karma-jasmine": "^0.3.6",
     "should": "1.2.2",
     "socket.io-client": "0.9.16",
     "supertest": "0.7.1"
