@@ -38,7 +38,7 @@ function init() {
       function(eventObj) {
         if (eventObj.isApiReady) {
           //hangouts is ready.. bootstrap angular application
-          System.import('dist/HelloWorld.js').catch(console.log.bind(console));
+          System.import('//www.hackify.org/dist/HelloWorld.js').catch(console.log.bind(console));
         }
       });
 }
