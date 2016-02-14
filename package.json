@@ -20,7 +20,10 @@
     "optimist": "0.6.0",
     "connect-redis": "1.4.6",
     "cookie": "0.1.0",
-    "passport-github": "0.1.5"
+    "passport-github": "0.1.5",
+    "angular2": "2.0.0-beta.3",
+    "rxjs": "5.0.0-beta.1",
+    "systemjs": "~0.19.13"
   },
   "devDependencies": {
     "jasmine-core": "^2.3.4",
@@ -29,7 +32,8 @@
     "karma-jasmine": "^0.3.6",
     "should": "1.2.2",
     "socket.io-client": "0.9.16",
-    "supertest": "0.7.1"
+    "supertest": "0.7.1",
+    "typescript": "^1.6.2"
   },
   "subdomain": "mdausmann.hackify",
   "domains": [
@@ -37,6 +41,7 @@
     "www.hackify.org"
   ],
   "scripts": {
-    "start": "server.js"
+    "build": "tsc",
+    "start": "node server.js"
   }
 }

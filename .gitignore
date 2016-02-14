@@ -20,3 +20,4 @@ npm-debug.log
 node_modules
 bower_components
 config_production.js
+public/dist

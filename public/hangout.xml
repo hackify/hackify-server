@@ -12,204 +12,41 @@
  * License for the specific language governing permissions and limitations under
  * the License
 -->
-        <ModulePrefs title="Hackify Hangout">
-                <Require feature="rpc" />
-                <Require feature="views" />
-                <Require feature="locked-domain" />
-        </ModulePrefs>
-        <Content type="html"><![CDATA[     
-<html lang="en" ng-app="myApp" class="full-height">
-<head>
-    <meta charset="utf-8">
-    <title>Hangout Room</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+<ModulePrefs title="Hackify Hangout">
+        <Require feature="rpc" />
+        <Require feature="views" />
+        <Require feature="locked-domain" />
+</ModulePrefs>
+<Content type="html"><![CDATA[     
+<html>
 
-    <!-- Le styles -->
-    <link href="//www.hackify.org/bower_components/codemirror/lib/codemirror.css" rel="stylesheet">
-    <link href="//www.hackify.org/bower_components/bootstrap-css/css/bootstrap.css" rel="stylesheet">
-    <link href="//www.hackify.org/bower_components/bootstrap-css/css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="//www.hackify.org/lib/necolas-css3-social-signin-buttons/auth-buttons.css" rel="stylesheet">
-    <link href="//www.hackify.org/css/hackify.css" rel="stylesheet">
+<body>
+<script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
+<script src="//www.hackify.org/node_modules/systemjs/dist/system.js"></script>
+<script src="//www.hackify.org/node_modules/rxjs/bundles/Rx.js"></script>
+<script src="//www.hackify.org/node_modules/angular2/bundles/angular2-polyfills.js"></script>
+<script src="//www.hackify.org/node_modules/angular2/bundles/angular2.dev.js"></script>
 
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-    <script src="./js/html5shiv.js"></script>
-    <![endif]-->
 
-    <!-- Fav and touch icons -->
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="//www.hackify.org/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="//www.hackify.org/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="//www.hackify.org/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="//www.hackify.org/ico/apple-touch-icon-57-precomposed.png">
-    <link rel="shortcut icon" href="//www.hackify.org/ico/favicon.png">
-</head>
 
-<body class="full-height">
-
-<div class="container-fluid full-height" ng-controller="AppCtrl">
-    <div class="row-fluid  full-height">
-        <div class="span8 full-height">
-            <!--code editor section-->
-            <div class="tabbable tabs-top full-height">
-                <ul class="nav nav-tabs">
-                    <li ng-repeat="(key, openFile) in bodyStore" ng-class="{active:(openFile.fileName==currentFile)}">
-                      <a href="#" title="{{openFile.fileName}}" ng-hide="authMap[currentUser.role].changeCurrentFile!=true" ng-click="requestChangeCurrentFile(openFile.fileName)" data-toggle="tab">{{ openFile.fileName | namefrompath }}<span ng-show="openFile.isDirty">*</span><button class="close" type="button" ng-show="openFile.fileName!=currentFile && openFile.isDirty==false" ng-click="requestCloseFile(openFile.fileName); $event.stopPropagation()">×</button></a>
-                      <a href="#" title="{{openFile.fileName}}" ng-show="authMap[currentUser.role].changeCurrentFile!=true">{{ openFile.fileName | namefrompath }}<span ng-show="openFile.isDirty">*</span><button class="close" type="button" ng-show="openFile.fileName!=currentFile && openFile.isDirty==false" ng-click="requestCloseFile(openFile.fileName); $event.stopPropagation()">×</button></a>                        
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <textarea ui-codemirror="editorOptions" ng-model="bodyStore[currentFile].body" inc-change="newChange"></textarea>
-                </div>
-            </div>  
-        </div>
-        <div class="span4">
-            <div class="row-fluid">
-                <div class="span12">
-                    <!--header section-->
-                    <h3 title="You are likely to be eaten by a grue.">You are in room {{name}}.</h3>
-                    <form>
-                         <div class="btn-group">
-                          <button class="btn btn-primary" ng-click="requestSaveCurrentFile()" ng-show="authMap[currentUser.role].saveCurrentFile" title="save current file back to host">Save</button>
-                          <button class="btn btn-warning" ng-click="requestReloadCurrentFile()" ng-show="authMap[currentUser.role].saveCurrentFile" title="discard all changes to the current file and reload from Host">Discard</button>
-                          <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" title="load a file from the host for editing">Open</button>
-                          <ul class="dropdown-menu">
-                            <li ng-repeat="file in files">
-                              <a href="#" ng-hide="authMap[currentUser.role].changeCurrentFile!=true" ng-click="requestChangeCurrentFile(file)">{{ file }}</a>
-                              <span ng-show="authMap[currentUser.role].changeCurrentFile!=true">{{ file }}</span>
-                            </li>
-                          </ul>
-                        </div>                       
-                    </form>
-
-                </div>
-            </div>
-
-            <div class="row-fluid">
-                <div class="span12">
-
-                    <!--userlist section-->
-                    <h3>Users</h3>
-                    <ul id="userlist">
-                        <li ng-repeat="user in users" ng-class="{'active':user.isYou, 'participant':!user.isYou}" ng-hide="user.userId == 'host'">
-                            <div class="ng-cloak">
-                                <img ng-hide="user.userInfo.image" src="//www.hackify.org/img/unknown.png" alt="{{ user.userId }}" />
-                                <img ng-show="user.userInfo.image" src="{{ user.userInfo.image }}" alt="{{ user.userId }}" />
-                            </div>
-                            <a ng-click="$parent.focusUser = user; $parent.selfDetailOpen = true">{{ user.userId }}</a>
-                            <div ng-hide="user.role=='default'">({{user.role}})</div>
-                            <div ng-show="user.requestedRole">[{{user.requestedRole}}]</div>
-                            <div ng-show="currentUser.role=='moderator' && user.requestedRole && user.requestedRole!=''" class="btn btn-mini" ng-click="grantRequestedRole(user.userId)">grant</div>
-                        </li>
-                    </ul>
-                    
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span12">
-
-                    <!-- chat section-->
-                    <h3>Chat</h3>
-                    <div class="chat-messages" style="height: 205px;" scroll-to-bottom="messages">
-                        <div ng-repeat="message in messages">
-                            <div class="pull-right text-muted">{{message.date | date:'HH:mm:ss'}}</div>
-                            <span ng-class="{'text-warning':message.userId==currentUser.userId, 'text-info':message.userId!=currentUser.userId}">{{message.userId}}</span>
-                            <span class="text-success">: {{message.message}}</span>
-                        </div>
-                    </div>
-                    <form class="form-inline" ng-show="authMap[currentUser.role].newChatMessage">
-                        <input ng-model="newMessage"></input>
-                        <button class="btn" ng-click="newChatMessage()">send</button>
-                    </form>
-                    
-                </div>
-            </div>
-
-            <div class="row-fluid">
-                <div class="span12">
-
-                    <!-- editor options and warning section-->
-                    <label class="checkbox"><input type="checkbox" ng-model="editorOptions.lineWrapping"></input>line wrap</label>
-                    <span class="text-warning" ng-hode="warning==''">{{warning}}</span>
-
-                </div>
-            </div>
-
-        </div>        
-    </div>
-
-    <!-- user modal -->
-    <div modal="selfDetailOpen" close="selfDetailOpen = false" options="{backdrop: false, dialogFade:true}">
-        <div class="modal-header">
-            <h3>{{focusUser.userId}}</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-inline" ng-show="focusUser.isYou">
-                <h4>Change Name</h4>
-                <input ng-model="newUserId" placeholder="New Nickname"></input>
-                <button class="btn" ng-click="changeUserId()">change</button>
-            </form>     
-
-            <div ng-show="currentUser.role=='moderator'">
-                <h4>Change Role</h4>
-                <div class="btn btn-small" ng-click="grantChangeRole(focusUser.userId, 'editor')">editor</div>
-                <div class="btn btn-small" ng-click="grantChangeRole(focusUser.userId, 'default')">default</div>
-            </div>
-
-            <div ng-show="focusUser.isYou && currentUser.role!='moderator'">
-                <h4>Request Role</h4>
-                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'editor')">editor</div>
-                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'default')">default</div>
-                <div class="btn btn-small" ng-click="requestChangeRole(focusUser.userId, 'moderator', moderatorPass)">moderator</div>
-                <input ng-model="moderatorPass" placeholder="moderator pass"></input>
-            </div>
-
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary cancel" ng-click="selfDetailOpen = false">Close</button>
-        </div>
-    </div>
-    <!-- /user modal -->
-</div>
-<!-- /container -->
-
-<!-- Le javascript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="//www.hackify.org/socket.io/socket.io.js"></script>
-<script src="//www.hackify.org/bower_components/jquery/jquery.min.js"></script>
-<script src="//www.hackify.org/bower_components/bootstrap-css/js/bootstrap.min.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/lib/codemirror.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/addon/edit/matchbrackets.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/xml/xml.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/javascript/javascript.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/css/css.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/clike/clike.js"></script>
-<script src="//www.hackify.org/bower_components/codemirror/mode/php/php.js"></script>
-<script src="//www.hackify.org/bower_components/angular/angular.min.js"></script>
-<!-- <script src="//www.hackify.org/bower_components/angular-ui.github.com/angular-ui/build/angular-ui.js"></script> -->
-<script src="//www.hackify.org/lib/angular-ui-codemirror/ui-codemirror.js"></script>
-<script src="//www.hackify.org/bower_components/angular-socket-io/socket.js"></script>
-<!-- <script src="//www.hackify.org/lib/bootstrap-custom/ui-bootstrap-custom-0.4.0.js"></script>
-<script src="//www.hackify.org/lib/bootstrap-custom/ui-bootstrap-custom-tpls-0.4.0.js"></script> -->
-<script src="//www.hackify.org/lib/bootstrap-custom/ui-bootstrap-tpls-0.5.0.js"></script>
-
+<hello-world></hello-world>
 
 <script>
-    var roomName = 'demo';
+function init() {
+  // When API is ready...                                                         
+  gapi.hangout.onApiReady.add(
+      function(eventObj) {
+        if (eventObj.isApiReady) {
+          //hangouts is ready.. bootstrap angular application
+          System.import('dist/HelloWorld.js').catch(console.log.bind(console));
+        }
+      });
+}
+// Wait for gadget to load.                                                       
+gadgets.util.registerOnLoadHandler(init);
+//System.import('dist/HelloWorld.js').catch(console.log.bind(console));
 </script>
-<script src="//www.hackify.org/js/serverState.js"></script>
-
-<script src="//www.hackify.org/js/app.js"></script>
-<script src="//www.hackify.org/js/services.js"></script>
-<script src="//www.hackify.org/js/controllers.js"></script>
-<script src="//www.hackify.org/js/filters.js"></script>
-<script src="//www.hackify.org/js/directives.js"></script>
-<script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
 </body>
-</html>
 
 ]]>
 </Content>
