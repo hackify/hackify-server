@@ -21,3 +21,5 @@ node_modules
 bower_components
 config_production.js
 public/dist
+public/hangout.html
+public/hangout_broken.xml
